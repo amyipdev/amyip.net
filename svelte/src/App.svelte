@@ -1,30 +1,42 @@
 <script lang="ts">
-	export let name;
+	import {Styles} from "sveltestrap";
+	import WelcomeView from "./Welcome.svelte";
+	import HomeView from "./Home.svelte";
+	import {fade} from "svelte/transition";
+    import {SvelteComponentDev} from "svelte/internal";
+	import {sw} from "./stores";
+
+	const views = [WelcomeView,HomeView];
+	let cv: number = 0;
+	let vc: typeof SvelteComponentDev = views[cv];
+
+	function uvc(): void {
+		vc = views[cv];
+	}
+	function tv(n: number): void {
+		cv = n;
+	}
+	$: $sw != -1 && tv($sw);
 </script>
 
+<Styles />
+
+<svelte:head>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+	<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;700&family=Open+Sans:wght@600;700&display=swap" rel="stylesheet">
+</svelte:head>
+
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	{#if vc === views[cv]}
+		<div id="viewport" on:outroend={uvc} transition:fade>
+			<svelte:component this={vc}></svelte:component>
+		</div>
+	{/if}
 </main>
 
 <style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
+	:global(body) {
+		background: #121212 !important;
 	}
 </style>

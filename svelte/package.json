@@ -1,5 +1,5 @@
 {
-  "name": "svelte-app",
+  "name": "amyip-net",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -20,6 +20,7 @@
     "svelte": "^3.55.0",
     "svelte-check": "^3.6.2",
     "svelte-preprocess": "^5.1.1",
+    "sveltestrap": "^5.11.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
