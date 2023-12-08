@@ -1,0 +1,19 @@
+[package]
+name = "amyip-net"
+authors = ["Amy Parker <amy@amyip.net>"]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.69.0"
+description = "Sources for amyip.net"
+readme = "README.md"
+homepage = "https://amyip.net"
+repository = "https://github.com/amyipdev/amyip.net"
+license = "AGPL-3.0-or-later"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = { version = "0.5.0", features = ["json"] }
+serde = "1.0.193"
+uname = "0.1.1"
