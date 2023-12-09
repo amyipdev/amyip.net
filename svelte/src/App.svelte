@@ -2,11 +2,12 @@
 	import {Styles} from "sveltestrap";
 	import WelcomeView from "./Welcome.svelte";
 	import HomeView from "./Home.svelte";
+	import ShellView from "./Shell.svelte";
 	import {fade} from "svelte/transition";
     import {SvelteComponentDev} from "svelte/internal";
 	import {sw} from "./stores";
 
-	const views = [WelcomeView,HomeView];
+	const views = [WelcomeView,HomeView,ShellView];
 	let cv: number = 0;
 	let vc: typeof SvelteComponentDev = views[cv];
 
@@ -22,6 +23,7 @@
 <Styles />
 
 <svelte:head>
+	<link href=" https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 	<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;700&family=Open+Sans:wght@600;700&display=swap" rel="stylesheet">

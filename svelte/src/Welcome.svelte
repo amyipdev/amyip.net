@@ -41,13 +41,16 @@
 		height: 90vh !important;
 		min-height: 90vh !important;
 	}
+	@media (max-width: 511px) {
+		#lin2 {
+			font-size: 3rem !important;
+		}
+	}
 	#lin1 {
-		font-family: "Mullish", sans-serif;
 		font-weight: 600;
 	}
 	#lin2 {
 		font-size: 4.5rem;
-		font-family: "Mullish", sans-serif;
 		font-weight: 700;
 	}
 </style>
