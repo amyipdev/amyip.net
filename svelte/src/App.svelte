@@ -26,7 +26,7 @@
 	<link href=" https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-	<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;700&family=Open+Sans:wght@600;700&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;700&family=Inconsolata&display=swap" rel="stylesheet">
 </svelte:head>
 
 <main>
