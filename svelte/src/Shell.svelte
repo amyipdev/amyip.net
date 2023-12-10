@@ -1,35 +1,36 @@
 <script lang="ts">
     import {tick} from "svelte";
-    import {Terminal} from 'xterm';
-    import {FitAddon} from 'xterm-addon-fit';
-    import {safeId} from "./tools";
-    const term = new Terminal({
-        fontFamily: "Inconsolata"
-    });
-    const fa = new FitAddon();
-    term.loadAddon(fa);
+    import FontFaceObserver from "fontfaceobserver";
+    import init, {fit} from "amyip-net-shell";
+
+    window.onscroll = () => window.scrollTo(0, 0);
     async function loadShell() {
         await tick();
-        term.open(safeId("xterm-container"));
-        term.write("Hello");
-        window.addEventListener("resize", () => fa.fit());
-        await tick();
-        fa.fit();
-        window.onscroll = () => window.scrollTo(0, 0);
+        await new FontFaceObserver("Inconsolata").load();
+        await init();
+        window.onresize = () => fit();
+        window.dispatchEvent(new Event("resize"));
     }
     loadShell();
 </script>
 
 <main>
-    <div id="xterm-container-bs">
-        <div id="xterm-container"></div>
-    </div>
+    <p id="hacky-spacer"><br /></p>
+    <div id="terminal"></div>
 </main>
 
 <style>
-    #xterm-container {
+    @media (max-height: 720px) {
+        #hacky-spacer {
+            font-size: 0.1em !important;
+        }
+    }
+    #hacky-spacer {
+        font-size: 0.5em;
+    }
+    #terminal {
         height: 95vh;
-        width: 75vw;
+        width: 82.5vw;
         margin: auto;
     }
 </style>

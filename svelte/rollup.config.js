@@ -7,6 +7,7 @@ import livereload from 'rollup-plugin-livereload';
 import css from 'rollup-plugin-css-only';
 import autoPreprocess from 'svelte-preprocess';
 import typescript from "@rollup/plugin-typescript";
+import { wasm } from '@rollup/plugin-wasm';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -74,7 +75,8 @@ export default {
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
-		production && terser()
+		production && terser(),
+		wasm()
 	],
 	watch: {
 		clearScreen: false

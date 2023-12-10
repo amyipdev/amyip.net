@@ -1,0 +1,37 @@
+[package]
+name = "amyip-net-shell"
+authors = ["Amy Parker <amy@amyip.net"]
+homepage = "https://amyip.net"
+repository = "https://github.com/amyipdev/amyip.net"
+license = "AGPL-3.0-or-later"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "WASM shell for amyip.net"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+once_cell = "1.19.0"
+wasm-bindgen = "0.2.89"
+xterm-js-rs = { version = "0.1.2", features = ["xterm-addon-fit"] }
+
+[dependencies.web-sys]
+version = "0.3.66"
+features = [
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlDivElement",
+    "Window"
+]
+
+[profile.release]
+opt-level = "s"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.39"

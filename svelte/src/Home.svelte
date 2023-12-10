@@ -13,6 +13,7 @@
         isOpen = e.detail.isOpen;
     }
     import {sw} from './stores';
+    window.onscroll = () => {};
 </script>
 
 <main>
@@ -59,6 +60,7 @@
             </Nav>
         </Collapse>
     </Navbar>
+    
 </main>
 
 <style>

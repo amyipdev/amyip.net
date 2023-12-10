@@ -14,7 +14,13 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-colored = "2.0.4"
 rocket = { version = "0.5.0", features = ["json"] }
 serde = "1.0.193"
 uname = "0.1.1"
+
+[build-dependencies]
+# rocket's relative! is absolutely amazing and we use it for now
+# thankfully, as long as the versions stay the same, we're all good
+# this requires care, though - don't want to double-compile
+rocket = { version = "0.5.0", features = ["json"] }
+colored = "2.0.4"
