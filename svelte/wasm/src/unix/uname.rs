@@ -3,7 +3,6 @@ use crate::common;
 use xterm_js_rs::Terminal;
 
 const UNAME_KERN: &str = "IrisOS-nano";
-const UNAME_VSN: &str = "0.1";
 const UNAME_KVSN: &str = env!("CARGO_PKG_VERSION");
 const UNAME_NODENAME: &str = "amyip.net";
 // This is valid because WASM is single-threaded,
@@ -12,8 +11,7 @@ const UNAME_NODENAME: &str = "amyip.net";
 const UNAME_REL: &str = "#1";
 const UNAME_OS: &str = "IrisOS";
 const UNAME_MACH: &str = "wasm";
-const UNAME_HELP: &str =
-"Usage: uname [OPTION]...
+const UNAME_HELP: &str = "Usage: uname [OPTION]...
 Print certain system information. With no OPTION, same as -s.
 
  -a, --all              print all information, in the following order:
@@ -26,8 +24,7 @@ Print certain system information. With no OPTION, same as -s.
      --help             display this help and exit
      --version          output version information and exit
 ";
-const UNAME_VSN_TXT: &str =
-"uname (IrisOS-nano) 0.1
+const UNAME_VSN_TXT: &str = "uname (IrisOS-nano) 0.1
 Copyright (C) Amy Parker, 2023
 License AGPLv3+: GNU AGPL version 3 or later <https://gnu.org/licenses/agpl.html>
 This is free software: you are free to change and redistribute it.
@@ -38,7 +35,7 @@ Based on uname by David MacKenzie.";
 struct UnameArgs {
     /// All information
     pub a: bool,
-    /// Kernel name 
+    /// Kernel name
     pub s: bool,
     /// Hostname
     pub n: bool,
@@ -53,10 +50,20 @@ struct UnameArgs {
     /// Print help
     pub help: bool,
     /// Print version
-    pub vsn: bool
+    pub vsn: bool,
 }
 pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
-    let mut p: UnameArgs = UnameArgs {a:false,s:false,n:false,r:false,v:false,m:false,o:false,help:false,vsn:false};
+    let mut p: UnameArgs = UnameArgs {
+        a: false,
+        s: false,
+        n: false,
+        r: false,
+        v: false,
+        m: false,
+        o: false,
+        help: false,
+        vsn: false,
+    };
     for arg in &args {
         if !arg.starts_with('-') || arg.len() <= 1 {
             term.writeln(format!("uname: extra operand '{}'", arg).as_str());
@@ -92,7 +99,7 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
                 'm' => p.m = true,
                 'o' => p.o = true,
                 _ => {
-                    term.writeln(format!("uname: invalid option -- '{}'", {n}).as_str());
+                    term.writeln(format!("uname: invalid option -- '{}'", { n }).as_str());
                     common::minfo(term, "uname");
                     return 2;
                 }
@@ -149,9 +156,7 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
         term.write(UNAME_MACH);
     }
     if p.o || p.a {
-        if first {
-            first = false;
-        } else {
+        if !first {
             term.write(" ")
         }
         term.write(UNAME_OS);

@@ -8,7 +8,7 @@ use xterm_js_rs::{Terminal, TerminalOptions, Theme};
 
 use once_cell::sync::Lazy;
 
-static mut addon: Lazy<FitAddon> = Lazy::new(|| FitAddon::new());
+static mut ADDON: Lazy<FitAddon> = Lazy::new(|| FitAddon::new());
 
 #[wasm_bindgen]
 pub fn fit() {
@@ -16,7 +16,7 @@ pub fn fit() {
     // this is safe. if threading is implemented
     // in the future, use an external mutex-based lock
     // or a spinlock. Safety analysis: PASS
-    unsafe {addon.fit()};
+    unsafe { ADDON.fit() };
 }
 
 // TODO: implement auto-resizer
@@ -45,25 +45,31 @@ pub fn main() -> Result<(), JsValue> {
         .get_element_by_id("terminal")
         .unwrap();
     term.open(el.dyn_into()?);
-    
+
     // The following block is the official definition
     // for IrisOS-nano. Initially, this is just going to
     // be a cool terminal applet; however, it may eventually
     // be able to emulate the running of some IrisOS programs.
     // Note that some functions are defined outside for convenience.
-    
+
     // BEGIN IrisOS-nano
     run_shell_instruction(&term, "uname -a");
-    // TODO: initialize clock
+    // TODO: initialize clock (tsc)
     // TODO: kmessage()? print timestamps like in dmesg?
     // TODO: /sbin/login-style welcome, info printing
     // TODO: exit command
-    // END IrisOS-nano 
-    
+    // TODO: rootfs
+    // TODO: colored?
+    // TODO: actually interactive shell from example
+    // TODO: help command
+    // END IrisOS-nano
+
     // This only runs when the module is being initialized.
     // It will never be run on more than one thread - and
     // in fact will only be run once. Safety analysis: PASS
-    unsafe {term.load_addon(addon.clone().dyn_into::<FitAddon>()?.into());}
+    unsafe {
+        term.load_addon(ADDON.clone().dyn_into::<FitAddon>()?.into());
+    }
     term.focus();
     Ok(())
 }
@@ -71,8 +77,8 @@ pub fn main() -> Result<(), JsValue> {
 type PathFn = fn(&Terminal, Vec<&str>) -> i32;
 fn check_path(exec: &str) -> Option<PathFn> {
     match exec {
-        "uname" => Some(unix::uname),
-        _ => None
+        "uname" => Some(unix::uname::uname),
+        _ => None,
     }
 }
 
