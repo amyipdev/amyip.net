@@ -1,17 +1,28 @@
+mod builtins;
 mod common;
+mod instant;
+mod keys;
+mod nanotools;
 mod unix;
 
-use wasm_bindgen::prelude::*;
-
-use xterm_js_rs::addons::fit::FitAddon;
-use xterm_js_rs::{Terminal, TerminalOptions, Theme};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use once_cell::sync::Lazy;
+use wasm_bindgen::prelude::*;
+use xterm_js_rs::addons::fit::FitAddon;
+use xterm_js_rs::keys::BellStyle;
+use xterm_js_rs::{OnKeyEvent, Terminal, TerminalOptions, Theme};
+
+use keys::*;
 
 static mut ADDON: Lazy<FitAddon> = Lazy::new(|| FitAddon::new());
+static TSC: Lazy<instant::Instant> = Lazy::new(|| instant::Instant::now());
+static IN_IRUN: AtomicBool = AtomicBool::new(true);
+
+const MAX_HIST_LEN: usize = 1000;
 
 #[wasm_bindgen]
-pub fn fit() {
+pub fn fit() -> () {
     // because we aren't using any threading,
     // this is safe. if threading is implemented
     // in the future, use an external mutex-based lock
@@ -32,6 +43,8 @@ pub fn main() -> Result<(), JsValue> {
             .with_right_click_selects_word(true)
             .with_draw_bold_text_in_bright_colors(true)
             .with_font_family("Inconsolata")
+            .with_convert_eol(true)
+            .with_bell_style(BellStyle::Both)
             .with_theme(
                 Theme::new()
                     .with_foreground("#f5f1e3")
@@ -53,14 +66,133 @@ pub fn main() -> Result<(), JsValue> {
     // Note that some functions are defined outside for convenience.
 
     // BEGIN IrisOS-nano
-    run_shell_instruction(&term, "uname -a");
-    // TODO: initialize clock (tsc)
-    // TODO: kmessage()? print timestamps like in dmesg?
+    kmessage_instr(&term, "uname -a");
+    kmessage(&term, "tsc: initialized TSC via performance_now");
+    let mut ps1: &str = "$ ";
+    term.write(ps1);
+    let mut cb: String = String::new();
+    let mut cp: usize = 0;
+    let st: Terminal = Terminal::from(term.clone());
+    let mut hist: Vec<String> = vec![];
+    let mut chp: usize = usize::MAX;
+    let mut chp_ac: bool = false;
+    // this callback is the primary code of irun
+    let cb = Closure::wrap(Box::new(move |e: OnKeyEvent| {
+        let ev = e.dom_event();
+        if !IN_IRUN.load(Ordering::Relaxed) {
+            kmessage(&term, "Kernel panic - piping stdin is not supported");
+            panic!();
+        }
+        // TODO: implement https://gist.github.com/tuxfight3r/60051ac67c5f0445efee
+        match ev.key_code() {
+            KEY_ENTER => {
+                if cb.len() != 0 {
+                    for _ in cp..cb.len() {
+                        term.write(CURSOR_RIGHT);
+                    }
+                    term.writeln("");
+                    run_shell_instruction(&term, &cb.trim());
+                    if hist.len() == 0 || *hist.last().unwrap() != cb {
+                        hist.push(cb.clone());
+                    }
+                    cb.clear();
+                    term.write(ps1);
+                    cp = 0;
+                    chp = usize::MAX;
+                    chp_ac = false;
+                } else {
+                    term.writeln("");
+                    term.write(ps1);
+                }
+            }
+            KEY_BACKSPACE => {
+                if cp != 0 {
+                    term.write(CURSOR_BACKSPACE);
+                    cb.remove(cp - 1);
+                    cp -= 1;
+                    term.write(cb.get(cp..).unwrap());
+                    term.write(CURSOR_RIGHT);
+                    term.write(CURSOR_BACKSPACE);
+                    for _ in cp..cb.len() {
+                        term.write(CURSOR_LEFT);
+                    }
+                } else {
+                    term.write(CURSOR_BELL);
+                }
+            }
+            KEY_LEFT_ARROW => {
+                if cp != 0 {
+                    term.write(CURSOR_LEFT);
+                    cp -= 1;
+                } else {
+                    term.write(CURSOR_BELL);
+                }
+            }
+            KEY_UP_ARROW => {
+                if chp == 0 {
+                    term.write(CURSOR_BELL);
+                } else if !chp_ac {
+                    if hist.len() == 0 {
+                        term.write(CURSOR_BELL);
+                    } else {
+                        rpos(&term, cp, &cb);
+                        chp = hist.len() - 1;
+                        chp_ac = true;
+                        term.write(&hist[chp]);
+                        hist.push(cb.clone());
+                        cb = hist[chp].clone();
+                        cp = cb.len();
+                    }
+                } else {
+                    rpos(&term, cp, &cb);
+                    chp -= 1;
+                    term.write(&hist[chp]);
+                    cb = hist[chp].clone();
+                    cp = cb.len();
+                }
+            }
+            KEY_RIGHT_ARROW => {
+                if cp < cb.len() {
+                    term.write(CURSOR_RIGHT);
+                    cp += 1;
+                } else {
+                    term.write(CURSOR_BELL);
+                }
+            }
+            KEY_DOWN_ARROW => {
+                if !chp_ac || chp == hist.len() - 1 {
+                    term.write(CURSOR_BELL);
+                } else {
+                    rpos(&term, cp, &cb);
+                    chp += 1;
+                    term.write(&hist[chp]);
+                    cb = hist[chp].clone();
+                    cp = cb.len();
+                }
+            }
+            KEY_C if ev.ctrl_key() => {
+                term.writeln("^C");
+                term.write(ps1);
+            }
+            KEY_L if ev.ctrl_key() => term.clear(),
+            _ => {
+                if !ev.alt_key() && !ev.ctrl_key() && !ev.meta_key() {
+                    term.write(&ev.key());
+                    cb.insert(cp, e.key().chars().next().unwrap());
+                    cp += 1;
+                    term.write(cb.get(cp..).unwrap());
+                    for _ in cp..cb.len() {
+                        term.write(CURSOR_LEFT);
+                    }
+                }
+            }
+        }
+    }) as Box<dyn FnMut(_)>);
+    st.on_key(cb.as_ref().unchecked_ref());
+    cb.forget();
     // TODO: /sbin/login-style welcome, info printing
-    // TODO: exit command
     // TODO: rootfs
     // TODO: colored?
-    // TODO: actually interactive shell from example
     // TODO: help command
     // END IrisOS-nano
 
@@ -68,9 +200,9 @@ pub fn main() -> Result<(), JsValue> {
     // It will never be run on more than one thread - and
     // in fact will only be run once. Safety analysis: PASS
     unsafe {
-        term.load_addon(ADDON.clone().dyn_into::<FitAddon>()?.into());
+        st.load_addon(ADDON.clone().dyn_into::<FitAddon>()?.into());
     }
-    term.focus();
+    st.focus();
     Ok(())
 }
 
@@ -78,6 +210,8 @@ type PathFn = fn(&Terminal, Vec<&str>) -> i32;
 fn check_path(exec: &str) -> Option<PathFn> {
     match exec {
         "uname" => Some(unix::uname::uname),
+        "kmsg" => Some(nanotools::kmsg),
+        "exit" => Some(builtins::exit),
         _ => None,
     }
 }
@@ -93,5 +227,29 @@ fn run_shell_instruction(term: &Terminal, instr: &str) -> i32 {
             term.writeln(format!("irun: {}: command not found...", v[0]).as_str());
             return 127;
         }
+    }
+}
+
+fn kmessage_instr(term: &Terminal, instr: &str) -> () {
+    term.write(&fmt_ktime());
+    run_shell_instruction(term, instr);
+}
+
+fn kmessage(term: &Terminal, msg: &str) -> () {
+    term.write(&fmt_ktime());
+    term.writeln(msg);
+}
+
+fn fmt_ktime() -> String {
+    let elapsed = TSC.elapsed();
+    format!("[{:>5}.{:06}] ", elapsed.as_secs(), elapsed.subsec_micros())
+}
+
+fn rpos(term: &Terminal, cp: usize, cb: &String) {
+    for _ in cp..cb.len() {
+        term.write(CURSOR_RIGHT);
+    }
+    for _ in 0..cb.len() {
+        term.write(CURSOR_BACKSPACE);
     }
 }

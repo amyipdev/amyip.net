@@ -1,13 +1,19 @@
 <script lang="ts">
     import {tick} from "svelte";
     import FontFaceObserver from "fontfaceobserver";
-    import init, {fit} from "amyip-net-shell";
+    import init, {fit, main} from "amyip-net-shell";
+    import {wasmIni} from "./stores";
 
     window.onscroll = () => window.scrollTo(0, 0);
     async function loadShell() {
         await tick();
         await new FontFaceObserver("Inconsolata").load();
-        await init();
+        if (!$wasmIni) {
+            await init();
+            wasmIni.set(true);
+        } else {
+            main();
+        }
         window.onresize = () => fit();
         window.dispatchEvent(new Event("resize"));
     }

@@ -2,6 +2,7 @@ use colored::Colorize;
 use rocket::fs::relative;
 
 fn main() {
+    println!("cargo:rerun-if-changed=NULL");
     match std::process::Command::new("wasm-pack")
         .arg("build")
         .arg("--target")

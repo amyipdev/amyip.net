@@ -10,7 +10,9 @@ const UNAME_NODENAME: &str = "amyip.net";
 // actually need to bake in compile info...
 const UNAME_REL: &str = "#1";
 const UNAME_OS: &str = "IrisOS";
-const UNAME_MACH: &str = "wasm";
+// If wasm64 becomes a thing in the future, this needs
+// to be conditional
+const UNAME_MACH: &str = "wasm32";
 const UNAME_HELP: &str = "Usage: uname [OPTION]...
 Print certain system information. With no OPTION, same as -s.
 
@@ -116,12 +118,8 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
     }
     let mut first: bool = true;
     if p.s || args.len() == 0 || p.a {
-        if first {
-            first = false;
-        } else {
-            term.write(" ");
-        }
-        term.write(UNAME_KERN);
+        first = false;
+        term.write_callback(UNAME_KERN, &js_sys::Function::new_no_args(""));
     }
     if p.n || p.a {
         if first {
