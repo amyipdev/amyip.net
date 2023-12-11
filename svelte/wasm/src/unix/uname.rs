@@ -68,7 +68,7 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
     };
     for arg in &args {
         if !arg.starts_with('-') || arg.len() <= 1 {
-            term.writeln(format!("uname: extra operand '{}'", arg).as_str());
+            term.writeln(&format!("uname: extra operand '{}'", arg));
             common::minfo(term, "uname");
             return 1;
         }
@@ -84,7 +84,7 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
                 "--machine" => p.m = true,
                 "--operating-system" => p.o = true,
                 _ => {
-                    term.writeln(format!("uname: unrecognized option '{}'", arg).as_str());
+                    term.writeln(&format!("uname: unrecognized option '{}'", arg));
                     common::minfo(term, "uname");
                     return 1;
                 }
@@ -101,7 +101,7 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
                 'm' => p.m = true,
                 'o' => p.o = true,
                 _ => {
-                    term.writeln(format!("uname: invalid option -- '{}'", { n }).as_str());
+                    term.writeln(&format!("uname: invalid option -- '{}'", { n }));
                     common::minfo(term, "uname");
                     return 2;
                 }

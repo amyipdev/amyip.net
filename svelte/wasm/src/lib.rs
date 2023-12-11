@@ -4,6 +4,7 @@ mod instant;
 mod keys;
 mod nanotools;
 mod unix;
+mod vfs;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -12,6 +13,7 @@ use wasm_bindgen::prelude::*;
 use xterm_js_rs::addons::fit::FitAddon;
 use xterm_js_rs::keys::BellStyle;
 use xterm_js_rs::{OnKeyEvent, Terminal, TerminalOptions, Theme};
+use colored::Colorize;
 
 use keys::*;
 
@@ -33,6 +35,7 @@ pub fn fit() -> () {
 // TODO: implement auto-resizer
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
+    colored::control::set_override(true);
     console_error_panic_hook::set_once();
     //addon = FitAddon::new();
     let term: Terminal = Terminal::new(
@@ -68,12 +71,15 @@ pub fn main() -> Result<(), JsValue> {
     // BEGIN IrisOS-nano
     kmessage_instr(&term, "uname -a");
     kmessage(&term, "tsc: initialized TSC via performance_now");
+    term.writeln(&format!("Welcome to {}!", "IrisOS-nano".bright_green()));
+    term.writeln(&format!("Type {} for a list of commands.", "help".bold()));
+    term.writeln(&format!("Type {} for more information.", "iris-info".bold()));
     let mut ps1: &str = "$ ";
     term.write(ps1);
     let mut cb: String = String::new();
     let mut cp: usize = 0;
     let st: Terminal = Terminal::from(term.clone());
-    let mut hist: Vec<String> = vec![];
+    let mut hist: std::collections::VecDeque<String> = std::collections::VecDeque::new();
     let mut chp: usize = usize::MAX;
     let mut chp_ac: bool = false;
     // this callback is the primary code of irun
@@ -92,8 +98,8 @@ pub fn main() -> Result<(), JsValue> {
                     }
                     term.writeln("");
                     run_shell_instruction(&term, &cb.trim());
-                    if hist.len() == 0 || *hist.last().unwrap() != cb {
-                        hist.push(cb.clone());
+                    if hist.len() == 0 || *hist.back().unwrap() != cb {
+                        hist.push_back(cb.clone());
                     }
                     cb.clear();
                     term.write(ps1);
@@ -139,9 +145,13 @@ pub fn main() -> Result<(), JsValue> {
                         chp = hist.len() - 1;
                         chp_ac = true;
                         term.write(&hist[chp]);
-                        hist.push(cb.clone());
+                        hist.push_back(cb.clone());
                         cb = hist[chp].clone();
                         cp = cb.len();
+                        if hist.len() > MAX_HIST_LEN {
+                            chp -= 1;
+                            hist.pop_front();
+                        }
                     }
                 } else {
                     rpos(&term, cp, &cb);
@@ -173,6 +183,10 @@ pub fn main() -> Result<(), JsValue> {
             KEY_C if ev.ctrl_key() => {
                 term.writeln("^C");
                 term.write(ps1);
+                cb.clear();
+                cp = 0;
+                chp = usize::MAX;
+                chp_ac = false;
             }
             KEY_L if ev.ctrl_key() => term.clear(),
             _ => {
@@ -194,6 +208,7 @@ pub fn main() -> Result<(), JsValue> {
     // TODO: rootfs
     // TODO: colored?
     // TODO: help command
+    // TODO: man pages
     // END IrisOS-nano
 
     // This only runs when the module is being initialized.
@@ -212,6 +227,8 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "uname" => Some(unix::uname::uname),
         "kmsg" => Some(nanotools::kmsg),
         "exit" => Some(builtins::exit),
+        "iris-info" => Some(nanotools::iris_info),
+        "nano" => Some(builtins::nano),
         _ => None,
     }
 }
