@@ -32,10 +32,11 @@ pub fn fit() -> () {
     unsafe { ADDON.fit() };
 }
 
-// TODO: implement auto-resizer
+// TODO: get rid of panics/?/unwraps whenever unnecessary/avoidable
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
     colored::control::set_override(true);
+    // TODO: custom panic handler with kmessage/kernel panic
     console_error_panic_hook::set_once();
     //addon = FitAddon::new();
     let term: Terminal = Terminal::new(
@@ -82,6 +83,11 @@ pub fn main() -> Result<(), JsValue> {
     let mut hist: std::collections::VecDeque<String> = std::collections::VecDeque::new();
     let mut chp: usize = usize::MAX;
     let mut chp_ac: bool = false;
+
+    // this section is for testing
+    let mut fs = vfs::infs::FileSystem::create_test_fs();
+    // </testing>
+
     // this callback is the primary code of irun
     let cb = Closure::wrap(Box::new(move |e: OnKeyEvent| {
         let ev = e.dom_event();
