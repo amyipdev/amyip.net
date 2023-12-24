@@ -5,6 +5,7 @@ mod keys;
 mod nanotools;
 mod unix;
 mod vfs;
+mod sysvars;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 

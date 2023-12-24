@@ -8,6 +8,8 @@
 //   - thus very, very bad on SSDs (not a TRIM defrag)
 
 use crate::vfs;
+use crate::vfs::VirtualFileSystem;
+use std::sync::atomic::Ordering;
 
 pub struct FileSystem {
     sup: Superblock,
@@ -39,6 +41,7 @@ struct Superblock {
 }
 
 // inode structure length is 64
+// TODO: consider implementing Default
 #[derive(Copy, Clone)]
 struct Inode {
     // 0 = unused
@@ -113,12 +116,39 @@ impl Dentry {
             res.push(DentryEntry {
                 inum: u32::from_le_bytes(buf[n*256..n*256+4].try_into().unwrap()),
                 filename_cstr: buf[n*256+4..(n+1)*256].try_into().unwrap()
-            })
+            });
+            if let Some(j) = res.last() {
+                if j.inum == 0 {
+                    res.remove(res.len()-1);
+                }
+            }
         }
         Self {
             inum: inum,
             intern: res
         }
+    }
+    // alternative to vfd_as_dentry to access local elements
+    fn from_internal(inum: u32, fs: &FileSystem) -> Option<Self> {
+        if !fs.check_inode(inum) {
+            return None;
+        }
+        if fs.inodes[inum as usize].get_dirtype() != DirType::Dir {
+            return None;
+        }
+        let dp: usize = (fs.inodes[inum as usize].first_block * (fs.sup.data_block_size as u64)) as usize;
+        Some(
+            Dentry::new(
+                &fs.data[dp..(dp + fs.inodes[inum as usize].total_file_size as usize)], inum))
+    }
+    fn write_back(self, fs: &mut FileSystem) {
+        let mut ba: Vec<u8> = vec![];
+        for item in self.intern {
+            ba.extend(u32::to_le_bytes(item.inum));
+            ba.extend(item.filename_cstr);
+        }
+        ba.extend(std::iter::repeat(0u8).take(fs.sup.data_block_size as usize - (ba.len() % fs.sup.data_block_size as usize)));
+        fs.overwrite(&mut fs.get_fd(self.inum, 0x0).unwrap(), &ba);
     }
 }
 impl vfs::VirtualDentry for Dentry {
@@ -144,6 +174,10 @@ impl DentryEntry {
 }
 
 impl FileSystem {
+    fn clear_inode(&mut self, inode: u32) -> vfs::VfsResult {
+        self.inode_use_cache[(inode >> 3) as usize] &= !(1 << (inode % 8));
+        Ok(())
+    }
     fn check_inode(&self, inode: u32) -> bool {
         inode == 0 || inode >= self.sup.inode_count || self.inodes[inode as usize].num == 0
     }
@@ -151,17 +185,47 @@ impl FileSystem {
         (self.inodes[i as usize].first_block * (self.sup.data_block_size as u64) + p) as usize
     }
     // alloc_data vs alloc_inode: data needs a range, inode just needs one
+    fn alloc_inode(&mut self) -> Option<u32> {
+        let mut cby: u64 = 0;
+        let mut cbi: u8 = 0;
+        let bc: u64 = crate::common::fastceildiv(self.sup.inode_count as u64, 8);
+        while cby < bc {
+            if self.inode_use_cache[cby as usize] & (1 << cbi) == 0 {
+                self.inode_use_cache[cby as usize] |= 1 << cbi;
+                return Some((cby << 3) as u32 + cbi as u32);
+            }
+            if cbi == 7 {
+                cbi = 0;
+                cby += 1;
+            } else {
+                cbi += 1;
+            }
+        }
+        None
+    }
     fn alloc_data(&mut self, blocks: u64) -> Option<u64> {
         let mut byte_start: u64 = 0;
         let mut bit_start: u8 = 0;
         let mut byte_end: u64 = 0;
         let mut bit_end: u8 = 0;
         let mut cached_dist: u64 = 0;
-        while byte_end < crate::common::fastceildiv(self.sup.block_count, 8) {
+        let bc: u64 = crate::common::fastceildiv(self.sup.block_count, 8);
+        while byte_end < bc {
             if self.data_use_table[byte_end as usize] & (1 << bit_end) == 0 {
                 // this data is unused
                 cached_dist += 1;
                 if cached_dist == blocks {
+                    if byte_end - byte_start > 1 {
+                        for n in byte_start+1..byte_end {
+                            self.data_use_table[n as usize] |= 0xff;
+                        }
+                    }
+                    for n in bit_start..8 {
+                        self.data_use_table[byte_start as usize] |= 1 << n;
+                    }
+                    for n in 0..bit_end+1 {
+                        self.data_use_table[byte_end as usize] |= 1 << n;
+                    }
                     return Some((byte_start << 3) + bit_start as u64);
                 }
                 if bit_end == 7 {
@@ -214,8 +278,9 @@ impl FileSystem {
     }
 }
 
+// TODO: much better error handling
 impl vfs::VirtualFileSystem for FileSystem {
-    fn get_fd(&mut self, inode: u32, fd: u32) -> Option<Box<dyn vfs::VirtualFileDescriptor>> {
+    fn get_fd(&self, inode: u32, fd: u32) -> Option<Box<dyn vfs::VirtualFileDescriptor>> {
         if !self.check_inode(inode) {
             return None;
         }
@@ -226,8 +291,51 @@ impl vfs::VirtualFileSystem for FileSystem {
             fd: fd
         }))
     }
+    // note: file deletion might need to be in the context of the dentry
+    // since you can't delete a file unless you can stat it
     fn delete_file(&mut self, inode: u32) -> vfs::VfsResult {unimplemented!()}
-    fn create_file(&mut self, dir_inode: u32, filename: String, data: Box<[u8]>) -> Option<u32> {unimplemented!()}
+    // todo: explicit typing
+    fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32> {
+        let _file_inode = self.alloc_inode();
+        if _file_inode.is_none() {
+            return None;
+        }
+        let file_inode: usize = _file_inode.unwrap() as usize;
+        let bc = crate::common::fastceildiv(data.len() as u64, self.sup.data_block_size as u64);
+        let _first_block = self.alloc_data(bc);
+        if _first_block.is_none() {
+            self.clear_inode(file_inode as u32);
+            return None;
+        }
+        let fb = _first_block.unwrap();
+        let sp: usize = (fb * (self.sup.data_block_size as u64)) as usize;
+        self.data[sp..sp+data.len()].copy_from_slice(data);
+        self.inodes[file_inode].num = file_inode as u32;
+        self.inodes[file_inode].first_block = fb;
+        self.inodes[file_inode].end_block = fb + bc - 1;
+        self.inodes[file_inode].total_file_size = data.len() as u64;
+        self.inodes[file_inode].perms = 0o666 & !crate::sysvars::UMASK.load(Ordering::Relaxed);
+        // for now we're presuming the user is root
+        // TODO: update vfs to allow fs to set/check uid, gid, perms
+        self.inodes[file_inode].uid = 0;
+        self.inodes[file_inode].gid = 0;
+        self.inodes[file_inode].hard_link_count = 0;
+        // until we get proper date support, we're just gonna set everything here to 0
+        // TODO: actually implement these dates
+        self.inodes[file_inode].accessed = 0;
+        self.inodes[file_inode].modified = 0;
+        self.inodes[file_inode].created = 0;
+        let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
+        let mut mv: [u8; 252] = [0; 252];
+        let l = std::cmp::min(252, filename.len());
+        mv[..l].copy_from_slice(&filename.as_bytes()[..l]);
+        dentry.intern.push(DentryEntry {
+            inum: file_inode as u32,
+            filename_cstr: mv
+        });
+        dentry.write_back(self);
+        Some(file_inode as u32)
+    }
     // we don't do anything special with fd's in INFS, so these are simple operations
     // however, other fs'es might cache information about where on disk to look (LBA-optimization)
     // that doesn't apply for this implementation though, but we need this flexibility
@@ -303,8 +411,8 @@ impl vfs::VirtualFileSystem for FileSystem {
         self.data[a..a+buf.len()].copy_from_slice(buf);
         Ok(())
     }
-    fn overwrite(&mut self, fd: &mut Box::<dyn vfs::VirtualFileDescriptor>, buf: Box<[u8]>) -> vfs::VfsResult {unimplemented!()}
-    fn append(&mut self, fd: &mut Box::<dyn vfs::VirtualFileDescriptor>, buf: Box<[u8]>) -> vfs::VfsResult {unimplemented!()}
+    fn overwrite(&mut self, fd: &mut Box::<dyn vfs::VirtualFileDescriptor>, buf: &[u8]) -> vfs::VfsResult {unimplemented!()}
+    fn append(&mut self, fd: &mut Box::<dyn vfs::VirtualFileDescriptor>, buf: &[u8]) -> vfs::VfsResult {unimplemented!()}
     // TODO: factor out self.inodes[i as usize]
     fn vfd_as_dentry(&mut self, fd: &Box::<dyn vfs::VirtualFileDescriptor>) -> Option<Box<dyn vfs::VirtualDentry>> {
         let i: u32 = fd.get_inum();
