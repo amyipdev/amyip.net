@@ -3,18 +3,18 @@ mod common;
 mod instant;
 mod keys;
 mod nanotools;
+mod sysvars;
 mod unix;
 mod vfs;
-mod sysvars;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use colored::Colorize;
 use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 use xterm_js_rs::addons::fit::FitAddon;
 use xterm_js_rs::keys::BellStyle;
 use xterm_js_rs::{OnKeyEvent, Terminal, TerminalOptions, Theme};
-use colored::Colorize;
 
 use keys::*;
 
@@ -75,7 +75,10 @@ pub fn main() -> Result<(), JsValue> {
     kmessage(&term, "tsc: initialized TSC via performance_now");
     term.writeln(&format!("Welcome to {}!", "IrisOS-nano".bright_green()));
     term.writeln(&format!("Type {} for a list of commands.", "help".bold()));
-    term.writeln(&format!("Type {} for more information.", "iris-info".bold()));
+    term.writeln(&format!(
+        "Type {} for more information.",
+        "iris-info".bold()
+    ));
     let mut ps1: &str = "$ ";
     term.write(ps1);
     let mut cb: String = String::new();
@@ -104,6 +107,7 @@ pub fn main() -> Result<(), JsValue> {
                         term.write(CURSOR_RIGHT);
                     }
                     term.writeln("");
+                    // TODO: store shell_instruction result for $?
                     run_shell_instruction(&term, &cb.trim());
                     if hist.len() == 0 || *hist.back().unwrap() != cb {
                         hist.push_back(cb.clone());
@@ -236,6 +240,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "exit" => Some(builtins::exit),
         "iris-info" => Some(nanotools::iris_info),
         "nano" => Some(builtins::nano),
+        "test-infs" => Some(nanotools::test_infs),
         _ => None,
     }
 }
