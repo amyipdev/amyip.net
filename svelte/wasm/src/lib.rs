@@ -215,11 +215,10 @@ pub fn main() -> Result<(), JsValue> {
     }) as Box<dyn FnMut(_)>);
     st.on_key(cb.as_ref().unchecked_ref());
     cb.forget();
-    // TODO: /sbin/login-style welcome, info printing
     // TODO: rootfs
-    // TODO: colored?
     // TODO: help command
     // TODO: man pages
+    // TODO: scrollable terminal?
     // END IrisOS-nano
 
     // This only runs when the module is being initialized.
@@ -264,6 +263,7 @@ fn kmessage_instr(term: &Terminal, instr: &str) -> () {
     run_shell_instruction(term, instr);
 }
 
+// TODO: write kernel messages to ring buffer
 fn kmessage(term: &Terminal, msg: &str) -> () {
     term.write(&fmt_ktime());
     term.writeln(msg);

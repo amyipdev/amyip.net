@@ -55,12 +55,40 @@ pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
     }
     // no need to build a mountable fs, just run all the tests here
     let mut fs = crate::vfs::infs::FileSystem::create_test_fs();
+    term.writeln("created fs");
     // we know the root dentry is at 1
     let ino: u32 = fs
         .create_file(1, "test.txt".to_string(), args[0].as_bytes())
         .unwrap();
+    term.writeln("wrote file test.txt");
     // this fd isn't getting stored, so fd number doesn't matter on INFS
     let mut fd = fs.get_fd(ino, 0).unwrap();
+    term.write("read to eof on test.txt: ");
     term.writeln(&String::from_utf8(fs.read_to_eof(&mut fd).unwrap()).unwrap());
+    if args.len() >= 2 {
+        term.writeln("testing multi-file support");
+        let mut inos: Vec<u32> = vec![];
+        for n in 1..args.len() {
+            inos.push(
+                fs.create_file(1, format!("test{}.txt", n), args[n].as_bytes())
+                    .unwrap(),
+            );
+            term.writeln(&format!("wrote file test{}.txt", n));
+        }
+        let mut fds = vec![];
+        for n in inos {
+            fds.push(fs.get_fd(n, 0).unwrap());
+        }
+        for mut n in fds {
+            term.write("read to eof on multi: ");
+            term.writeln(&String::from_utf8(fs.read_to_eof(&mut n).unwrap()).unwrap());
+            fs.delete_file(n.get_inum(), 1);
+            term.writeln("deleted multi");
+        }
+    }
+    term.writeln("deleting file test.txt");
+    fs.delete_file(ino, 1).unwrap();
+    term.writeln("successfully deleted test.txt");
+    term.writeln("INFS driver works correctly");
     return 0;
 }

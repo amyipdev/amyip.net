@@ -105,6 +105,7 @@ struct Dentry {
     inum: u32,
 }
 // TODO: don't push when inum = 0
+// TODO: store dentry in sorted order, binary search dentry contents
 impl Dentry {
     fn new(buf: &[u8], inum: u32) -> Self {
         if buf.len() % 256 != 0 {
@@ -346,8 +347,22 @@ impl vfs::VirtualFileSystem for FileSystem {
     }
     // note: file deletion might need to be in the context of the dentry
     // since you can't delete a file unless you can stat it
-    fn delete_file(&mut self, inode: u32) -> vfs::VfsResult {
-        unimplemented!()
+    fn delete_file(&mut self, inode: u32, dir_inode: u32) -> vfs::VfsResult {
+        if !self.check_inode(inode) || !self.check_inode(dir_inode) {
+            return Err(vfs::VfsErrno::EINVFD);
+        }
+        let ino = &self.inodes[inode as usize];
+        self.clear_data(ino.first_block, ino.end_block);
+        self.clear_inode(inode);
+        let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
+        for n in 0..dentry.intern.len() {
+            if n == inode as usize {
+                dentry.intern.remove(n);
+                break;
+            }
+        }
+        dentry.write_back(self);
+        Ok(())
     }
     // todo: explicit typing
     fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32> {

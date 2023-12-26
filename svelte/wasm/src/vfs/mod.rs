@@ -40,7 +40,7 @@ pub type VfsResult = Result<(), VfsErrno>;
 
 pub trait VirtualFileSystem {
     fn get_fd(&self, inode: u32, fd: u32) -> Option<Box<dyn VirtualFileDescriptor>>;
-    fn delete_file(&mut self, inode: u32) -> VfsResult;
+    fn delete_file(&mut self, inode: u32, dir_inode: u32) -> VfsResult;
     // returns the inode of the new file
     fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32>;
     fn rewind_zero(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>) -> VfsResult;
