@@ -90,5 +90,14 @@ pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
     fs.delete_file(ino, 1).unwrap();
     term.writeln("successfully deleted test.txt");
     term.writeln("INFS driver works correctly");
+
+    let ino = fs.create_file(1, "mod.txt".to_string(), "FS traversal worked!".as_bytes()).unwrap();
+    term.writeln("created file mod.txt");
+    crate::vfs::mount_root(Box::new(fs));
+    term.writeln("mounted as rootfs");
+    let tun = crate::vfs::safe_wrap_fdfs("mod.txt".to_string());
+    // TODO: dentry searching and other dentry ops
+    let mut fd = tun.0.get_fd(ino, 0).unwrap();
+    term.writeln(&String::from_utf8(tun.0.read_to_eof(&mut fd).unwrap()).unwrap());
     return 0;
 }

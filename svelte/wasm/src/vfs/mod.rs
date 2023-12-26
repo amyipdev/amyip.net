@@ -1,6 +1,8 @@
 pub(crate) mod infs;
 
-use once_cell::sync::Lazy;
+//use once_cell::sync::Lazy;
+
+use std::collections::HashMap;
 
 // could lazy load the rootfs
 // mount.root downloads the standard rootfs, mounts on /
@@ -10,12 +12,49 @@ use once_cell::sync::Lazy;
 
 // TODO: procfs/sysfs/devfs (base: chardevfs)
 
-struct VFS {
-    mountpoint: String,
-    fs: Box<dyn VirtualFileSystem>,
+// in a MultiMount, "." contains the rootfs
+enum VfsTreeNode {
+    Mounted(Box<dyn VirtualFileSystem>),
+    MultiMount(HashMap<String, VfsTreeNode>),
+    Unmounted
 }
-// TODO: convert MOUNTS to a tree
-static mut MOUNTS: Lazy<Vec<VFS>> = Lazy::new(|| vec![]);
+impl VfsTreeNode {
+    // input should be form of "path/to/filesys/file"
+    // output string is path to file on the filesys
+    fn find_destination_fs(&mut self, path: String) -> (&mut Box<dyn VirtualFileSystem>, String) {
+        match self {
+            VfsTreeNode::Mounted(ref mut n) => (n, path),
+            VfsTreeNode::MultiMount(ref mut n) => {
+                let mut rempath: Vec<String> = path.splitn(2, '/').map(|x| x.to_string()).collect();
+                if rempath.len() == 1 {
+                    rempath.insert(0, ".".to_string());
+                }
+                if n.contains_key(&rempath[0]) {
+                    return n.get_mut(&rempath[0]).unwrap().find_destination_fs(rempath[1].clone());
+                }
+                (n.get_mut(".").unwrap().presume_mounted().unwrap(), rempath[1].clone())
+            }
+            _ => panic!("No FS mounted!")
+        }
+    }
+    fn presume_mounted(&mut self) -> Option<&mut Box<dyn VirtualFileSystem>> {
+        match self {
+            VfsTreeNode::Mounted(n) => Some(n),
+            _ => None
+        }
+    }
+}
+static mut VFS_ROOT: VfsTreeNode = VfsTreeNode::Unmounted;
+pub fn mount_root(fs: Box<dyn VirtualFileSystem>) {
+    unsafe {
+        VFS_ROOT = VfsTreeNode::Mounted(fs);
+    }
+}
+pub fn safe_wrap_fdfs<'a>(path: String) -> (&'a mut Box<dyn VirtualFileSystem>, String) {
+    unsafe {
+        VFS_ROOT.find_destination_fs(path)
+    }
+}
 
 pub enum VfsErrno {
     EINVFD,
