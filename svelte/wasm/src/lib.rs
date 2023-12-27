@@ -33,6 +33,12 @@ pub fn fit() -> () {
     unsafe { ADDON.fit() };
 }
 
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 // TODO: get rid of panics/?/unwraps whenever unnecessary/avoidable
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
@@ -235,11 +241,13 @@ type PathFn = fn(&Terminal, Vec<&str>) -> i32;
 fn check_path(exec: &str) -> Option<PathFn> {
     match exec {
         "uname" => Some(unix::uname::uname),
+        "cat" => Some(unix::cat::cat),
         "kmsg" => Some(nanotools::kmsg),
         "exit" => Some(builtins::exit),
         "iris-info" => Some(nanotools::iris_info),
         "nano" => Some(builtins::nano),
-        "test-infs" => Some(nanotools::test_infs),
+        "sanity-checks.infs" => Some(nanotools::test_infs),
+        "sanity-checks.readroot" => Some(nanotools::test_read_root),
         _ => None,
     }
 }

@@ -175,9 +175,7 @@ impl DentryEntry {
     fn convert_to_vfs(&self) -> vfs::VirtualDentryEntry {
         vfs::VirtualDentryEntry {
             inum: self.inum,
-            filename: std::str::from_utf8(&self.filename_cstr)
-                .unwrap()
-                .to_string(),
+            filename: crate::common::bytes_to_string(&self.filename_cstr),
         }
     }
 }
@@ -356,7 +354,7 @@ impl vfs::VirtualFileSystem for FileSystem {
         self.clear_inode(inode);
         let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
         for n in 0..dentry.intern.len() {
-            if n == inode as usize {
+            if dentry.intern[n].inum == inode {
                 dentry.intern.remove(n);
                 break;
             }
@@ -366,6 +364,16 @@ impl vfs::VirtualFileSystem for FileSystem {
     }
     // todo: explicit typing
     fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32> {
+        let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
+        // uniqueness check
+        for e in &dentry.intern {
+            if e.inum == 0 {
+                continue;
+            }
+            if crate::common::bytes_to_string(&e.filename_cstr) == filename {
+                return None;
+            }
+        }
         let _file_inode = self.alloc_inode();
         if _file_inode.is_none() {
             return None;
@@ -396,7 +404,6 @@ impl vfs::VirtualFileSystem for FileSystem {
         self.inodes[file_inode].accessed = 0;
         self.inodes[file_inode].modified = 0;
         self.inodes[file_inode].created = 0;
-        let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
         let mut mv: [u8; 252] = [0; 252];
         let l = std::cmp::min(252, filename.len());
         mv[..l].copy_from_slice(&filename.as_bytes()[..l]);

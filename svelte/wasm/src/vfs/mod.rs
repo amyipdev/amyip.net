@@ -1,3 +1,4 @@
+pub mod futils;
 pub(crate) mod infs;
 
 //use once_cell::sync::Lazy;
@@ -16,11 +17,12 @@ use std::collections::HashMap;
 enum VfsTreeNode {
     Mounted(Box<dyn VirtualFileSystem>),
     MultiMount(HashMap<String, VfsTreeNode>),
-    Unmounted
+    Unmounted,
 }
 impl VfsTreeNode {
     // input should be form of "path/to/filesys/file"
     // output string is path to file on the filesys
+    // TODO/BUG: can't mount at sub-subs (can't have mounts of / and /a/b without /a)
     fn find_destination_fs(&mut self, path: String) -> (&mut Box<dyn VirtualFileSystem>, String) {
         match self {
             VfsTreeNode::Mounted(ref mut n) => (n, path),
@@ -30,17 +32,23 @@ impl VfsTreeNode {
                     rempath.insert(0, ".".to_string());
                 }
                 if n.contains_key(&rempath[0]) {
-                    return n.get_mut(&rempath[0]).unwrap().find_destination_fs(rempath[1].clone());
+                    return n
+                        .get_mut(&rempath[0])
+                        .unwrap()
+                        .find_destination_fs(rempath[1].clone());
                 }
-                (n.get_mut(".").unwrap().presume_mounted().unwrap(), rempath[1].clone())
+                (
+                    n.get_mut(".").unwrap().presume_mounted().unwrap(),
+                    rempath[1].clone(),
+                )
             }
-            _ => panic!("No FS mounted!")
+            _ => panic!("No FS mounted!"),
         }
     }
     fn presume_mounted(&mut self) -> Option<&mut Box<dyn VirtualFileSystem>> {
         match self {
             VfsTreeNode::Mounted(n) => Some(n),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -51,15 +59,14 @@ pub fn mount_root(fs: Box<dyn VirtualFileSystem>) {
     }
 }
 pub fn safe_wrap_fdfs<'a>(path: String) -> (&'a mut Box<dyn VirtualFileSystem>, String) {
-    unsafe {
-        VFS_ROOT.find_destination_fs(path)
-    }
+    unsafe { VFS_ROOT.find_destination_fs(path) }
 }
 
 pub enum VfsErrno {
     EINVFD,
     EFPOOB,
     ENSTOR,
+    EALREX,
 }
 impl VfsErrno {
     pub fn errno(&self) -> &str {
@@ -67,6 +74,7 @@ impl VfsErrno {
             VfsErrno::EINVFD => "file descriptor points to nonexistent file",
             VfsErrno::EFPOOB => "file seek went out of bounds",
             VfsErrno::ENSTOR => "not enough space on disk",
+            VfsErrno::EALREX => "file already exists in directory",
         }
     }
 }
@@ -110,7 +118,8 @@ pub trait VirtualDentry {
     fn get_inode(&self) -> u32;
 }
 
-struct VirtualDentryEntry {
-    inum: u32,
-    filename: String,
+// have to make this pub for code to work with it
+pub struct VirtualDentryEntry {
+    pub inum: u32,
+    pub filename: String,
 }

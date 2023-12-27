@@ -48,6 +48,7 @@ pub fn iris_info(term: &Terminal, _args: Vec<&str>) -> i32 {
     return 0;
 }
 
+// TODO: eventualy delete once fs stable
 pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
     if args.len() == 0 {
         term.writeln("test-infs: cannot test with no args");
@@ -91,7 +92,9 @@ pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
     term.writeln("successfully deleted test.txt");
     term.writeln("INFS driver works correctly");
 
-    let ino = fs.create_file(1, "mod.txt".to_string(), "FS traversal worked!".as_bytes()).unwrap();
+    let ino = fs
+        .create_file(1, "mod.txt".to_string(), "FS traversal worked!".as_bytes())
+        .unwrap();
     term.writeln("created file mod.txt");
     crate::vfs::mount_root(Box::new(fs));
     term.writeln("mounted as rootfs");
@@ -99,5 +102,17 @@ pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
     // TODO: dentry searching and other dentry ops
     let mut fd = tun.0.get_fd(ino, 0).unwrap();
     term.writeln(&String::from_utf8(tun.0.read_to_eof(&mut fd).unwrap()).unwrap());
+
+    return 0;
+}
+
+// TODO: eventually delete once fs stable
+pub fn test_read_root(term: &Terminal, args: Vec<&str>) -> i32 {
+    let mut fsw = crate::vfs::safe_wrap_fdfs(".".to_string()).0;
+    // 1 = /.
+    let mut vdent = fsw.vfd_as_dentry(&fsw.get_fd(1, 0).unwrap()).unwrap();
+    for n in vdent.get_entries() {
+        term.writeln(&format!("VDE inode={},filename={}", n.inum, n.filename));
+    }
     return 0;
 }
