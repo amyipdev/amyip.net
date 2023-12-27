@@ -101,7 +101,7 @@ pub fn uname(term: &Terminal, args: Vec<&str>) -> i32 {
                 'm' => p.m = true,
                 'o' => p.o = true,
                 _ => {
-                    term.writeln(&format!("uname: invalid option -- '{}'", { n }));
+                    term.writeln(&format!("uname: invalid option -- '{}'", n));
                     common::minfo(term, "uname");
                     return 2;
                 }
