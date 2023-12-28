@@ -23,6 +23,7 @@ impl VfsTreeNode {
     // input should be form of "path/to/filesys/file"
     // output string is path to file on the filesys
     // TODO/BUG: can't mount at sub-subs (can't have mounts of / and /a/b without /a)
+    // TODO/BUG: don't panic on no FS mounted, change return type into Option or something
     fn find_destination_fs(&mut self, path: String) -> (&mut Box<dyn VirtualFileSystem>, String) {
         match self {
             VfsTreeNode::Mounted(ref mut n) => (n, path),

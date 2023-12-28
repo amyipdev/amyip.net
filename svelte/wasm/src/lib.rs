@@ -106,6 +106,7 @@ pub fn main() -> Result<(), JsValue> {
             panic!();
         }
         // TODO: implement https://gist.github.com/tuxfight3r/60051ac67c5f0445efee
+        // TODO/BUG: don't print non-printable characters (breaks buffer horrendously)
         match ev.key_code() {
             KEY_ENTER => {
                 if cb.len() != 0 {
@@ -224,7 +225,6 @@ pub fn main() -> Result<(), JsValue> {
     // TODO: rootfs
     // TODO: help command
     // TODO: man pages
-    // TODO: scrollable terminal?
     // END IrisOS-nano
 
     // This only runs when the module is being initialized.
