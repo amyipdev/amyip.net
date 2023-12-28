@@ -10,12 +10,12 @@ pub fn read_to_end(mut path: String) -> Option<Vec<u8>> {
         // presumes CWD ends in slash
         path = format!("{}{}", crate::sysvars::load_cwd(), path);
     }
-    let mut fsw = crate::vfs::safe_wrap_fdfs(path.to_string());
+    let fsw = crate::vfs::safe_wrap_fdfs(path.to_string());
     let mut vdent = fsw.0.vfd_as_dentry(&fsw.0.get_fd(1, 0).unwrap()).unwrap();
-    let mut target: u32 = 0;
+    let mut target: u32;
     'bb: loop {
         // set into vdent?
-        let mut rem: Vec<String> = path.splitn(2, '/').map(|x| x.to_string()).collect();
+        let rem: Vec<String> = path.splitn(2, '/').map(|x| x.to_string()).collect();
         if rem.len() == 2 && rem[0] == "" {
             path = rem[1].clone();
             continue 'bb;

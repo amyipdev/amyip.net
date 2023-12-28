@@ -83,7 +83,7 @@ pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
         for mut n in fds {
             term.write("read to eof on multi: ");
             term.writeln(&String::from_utf8(fs.read_to_eof(&mut n).unwrap()).unwrap());
-            fs.delete_file(n.get_inum(), 1);
+            fs.delete_file(n.get_inum(), 1).unwrap();
             term.writeln("deleted multi");
         }
     }
@@ -107,10 +107,10 @@ pub fn test_infs(term: &Terminal, args: Vec<&str>) -> i32 {
 }
 
 // TODO: eventually delete once fs stable
-pub fn test_read_root(term: &Terminal, args: Vec<&str>) -> i32 {
-    let mut fsw = crate::vfs::safe_wrap_fdfs(".".to_string()).0;
+pub fn test_read_root(term: &Terminal, _args: Vec<&str>) -> i32 {
+    let fsw = crate::vfs::safe_wrap_fdfs(".".to_string()).0;
     // 1 = /.
-    let mut vdent = fsw.vfd_as_dentry(&fsw.get_fd(1, 0).unwrap()).unwrap();
+    let vdent = fsw.vfd_as_dentry(&fsw.get_fd(1, 0).unwrap()).unwrap();
     for n in vdent.get_entries() {
         term.writeln(&format!("VDE inode={},filename={}", n.inum, n.filename));
     }

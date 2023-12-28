@@ -7,6 +7,9 @@
 // - for long-term use (not recommended) needs to be "defragged"
 //   - thus very, very bad on SSDs (not a TRIM defrag)
 
+// TODO: actually implement symlinks and hardlinks
+//   - this means lots of dealing with reads/dentry work
+
 use crate::vfs;
 use crate::vfs::VirtualFileSystem;
 use std::sync::atomic::Ordering;
@@ -333,7 +336,7 @@ impl FileSystem {
 
 // TODO: much better error handling
 impl vfs::VirtualFileSystem for FileSystem {
-    fn get_fd(&self, inode: u32, fd: u32) -> Option<Box<dyn vfs::VirtualFileDescriptor>> {
+    fn get_fd(&self, inode: u32, _fd: u32) -> Option<Box<dyn vfs::VirtualFileDescriptor>> {
         if !self.check_inode(inode) {
             return None;
         }
@@ -350,8 +353,8 @@ impl vfs::VirtualFileSystem for FileSystem {
             return Err(vfs::VfsErrno::EINVFD);
         }
         let ino = &self.inodes[inode as usize];
-        self.clear_data(ino.first_block, ino.end_block);
-        self.clear_inode(inode);
+        self.clear_data(ino.first_block, ino.end_block).unwrap();
+        self.clear_inode(inode).unwrap();
         let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
         for n in 0..dentry.intern.len() {
             if dentry.intern[n].inum == inode {

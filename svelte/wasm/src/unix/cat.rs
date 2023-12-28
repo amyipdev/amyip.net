@@ -165,7 +165,7 @@ pub fn cat(term: &Terminal, mut args: Vec<&str>) -> i32 {
             if !(opt.show_nonprinting || opt.show_tabs) {
                 term.write(&line);
             } else {
-                let mut tmp: String = String::new();
+                let mut tmp: String;
                 for c in line.chars() {
                     term.write({
                         if c == '\t' {

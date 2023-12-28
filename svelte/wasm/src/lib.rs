@@ -94,10 +94,6 @@ pub fn main() -> Result<(), JsValue> {
     let mut chp: usize = usize::MAX;
     let mut chp_ac: bool = false;
 
-    // this section is for testing
-    let mut fs = vfs::infs::FileSystem::create_test_fs();
-    // </testing>
-
     // this callback is the primary code of irun
     let cb = Closure::wrap(Box::new(move |e: OnKeyEvent| {
         let ev = e.dom_event();
@@ -242,6 +238,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
     match exec {
         "uname" => Some(unix::uname::uname),
         "cat" => Some(unix::cat::cat),
+        "ls" => Some(unix::ls::ls),
         "kmsg" => Some(nanotools::kmsg),
         "exit" => Some(builtins::exit),
         "iris-info" => Some(nanotools::iris_info),
