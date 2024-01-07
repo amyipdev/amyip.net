@@ -352,6 +352,8 @@ impl vfs::VirtualFileSystem for FileSystem {
     }
     // note: file deletion might need to be in the context of the dentry
     // since you can't delete a file unless you can stat it
+    // TODO: check to make sure hardlinks = 1; if not, not safe to delete, just remove from dentry
+    // TODO:   (should decrement hardlinks) 
     fn delete_file(&mut self, inode: u32, dir_inode: u32) -> vfs::VfsResult {
         if !self.check_inode(inode) || !self.check_inode(dir_inode) {
             return Err(vfs::VfsErrno::EINVFD);
@@ -549,6 +551,7 @@ impl vfs::VirtualFileSystem for FileSystem {
         fd: &mut Box<dyn vfs::VirtualFileDescriptor>,
         buf: &[u8],
     ) -> vfs::VfsResult {
+        // CRITICAL TODO: implement this
         unimplemented!()
     }
     // TODO: factor out self.inodes[i as usize]

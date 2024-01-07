@@ -1,5 +1,7 @@
+// TODO: project-wide, change to pub(crate) where applicable
 pub mod futils;
-pub(crate) mod infs;
+pub mod infs;
+pub mod dummyfs;
 
 //use once_cell::sync::Lazy;
 
@@ -13,7 +15,6 @@ use std::collections::HashMap;
 
 // TODO: procfs/sysfs/devfs (base: chardevfs)
 
-// TODO: dummyfs (a filesystem that loads containing just / so that we don't panic)
 // TODO: add note to splash saying to run `get-rootfs` to get the rootfs
 // TODO: tool that hooks vfs to generate filesystems outside 
 
@@ -58,7 +59,10 @@ impl VfsTreeNode {
     }
 }
 static mut VFS_ROOT: VfsTreeNode = VfsTreeNode::Unmounted;
-pub fn mount_root(fs: Box<dyn VirtualFileSystem>) {
+pub fn mount_dummy() -> () {
+    mount_root(Box::new(dummyfs::FileSystem {}))
+}
+pub fn mount_root(fs: Box<dyn VirtualFileSystem>) -> () {
     unsafe {
         VFS_ROOT = VfsTreeNode::Mounted(fs);
     }

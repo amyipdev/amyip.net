@@ -79,6 +79,8 @@ pub fn main() -> Result<(), JsValue> {
     // BEGIN IrisOS-nano
     kmessage_instr(&term, "uname -a");
     kmessage(&term, "tsc: initialized TSC via performance_now");
+    vfs::mount_dummy();
+    kmessage(&term, "dummyfs: mounted initfs at /");
     term.writeln(&format!("Welcome to {}!", "IrisOS-nano".bright_green()));
     term.writeln(&format!("Type {} for a list of commands.", "help".bold()));
     term.writeln(&format!(

@@ -219,7 +219,7 @@ fn process_dir(term: &Terminal, dir: &str, opt: &LsOpts) {
             term.write(if f.perms & (1 << 10) != 0 {
                 "s"
             } else {
-                if f.perms & (1 << 8) != 0 {
+                if f.perms & (1 << 6) != 0 {
                     "x"
                 } else {
                     "-"
@@ -230,7 +230,7 @@ fn process_dir(term: &Terminal, dir: &str, opt: &LsOpts) {
             term.write(if f.perms & (1 << 9) != 0 {
                 "s"
             } else {
-                if f.perms & (1 << 8) != 0 {
+                if f.perms & (1 << 3) != 0 {
                     "x"
                 } else {
                     "-"
