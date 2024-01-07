@@ -16,3 +16,13 @@ pub fn bytes_to_string(bytes: &[u8]) -> String {
     }
     String::from_utf8(bytes.to_vec()).unwrap()
 }
+
+// Creates the equivalent of {:>NUM}
+pub fn shift_in_text(s: &str, c: usize) -> String {
+    if c <= s.len() {
+        return s.to_string();
+    }
+    let mut st = std::iter::repeat(' ').take(c - s.len()).collect::<String>();
+    st.push_str(s);
+    st
+}

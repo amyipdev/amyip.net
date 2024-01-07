@@ -13,6 +13,10 @@ use std::collections::HashMap;
 
 // TODO: procfs/sysfs/devfs (base: chardevfs)
 
+// TODO: dummyfs (a filesystem that loads containing just / so that we don't panic)
+// TODO: add note to splash saying to run `get-rootfs` to get the rootfs
+// TODO: tool that hooks vfs to generate filesystems outside 
+
 // in a MultiMount, "." contains the rootfs
 enum VfsTreeNode {
     Mounted(Box<dyn VirtualFileSystem>),
@@ -87,6 +91,7 @@ impl std::fmt::Debug for VfsErrno {
 pub type VfsResult = Result<(), VfsErrno>;
 
 pub trait VirtualFileSystem {
+    // TODO: consider getting rid of fd number
     fn get_fd(&self, inode: u32, fd: u32) -> Option<Box<dyn VirtualFileDescriptor>>;
     fn delete_file(&mut self, inode: u32, dir_inode: u32) -> VfsResult;
     // returns the inode of the new file
@@ -105,6 +110,13 @@ pub trait VirtualFileSystem {
         &mut self,
         fd: &Box<dyn VirtualFileDescriptor>,
     ) -> Option<Box<dyn VirtualDentry>>;
+    // All FSes should follow the INFS standard, or translate to it
+    fn file_perms(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u16>;
+    fn file_owner(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u32>;
+    fn file_group(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u32>;
+    fn file_size(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u64>;
+    fn file_modified(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u64>;
+    fn file_hardlinks(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u16>;
 }
 
 pub trait VirtualFileDescriptor {

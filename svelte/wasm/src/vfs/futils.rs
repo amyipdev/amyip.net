@@ -1,7 +1,10 @@
 // assumes fs is mounted
 // TODO: factor out further (read?)
-pub fn read_to_end(mut path: String) -> Option<Vec<u8>> {
+pub fn read_to_end(mut path: String, short: bool) -> Option<Vec<u8>> {
     // prepare destination string
+    if path.ends_with("/") {
+        path.push('.');
+    }
     if path.starts_with("/") {
         let mut m = path.chars();
         m.next();
@@ -40,6 +43,9 @@ pub fn read_to_end(mut path: String) -> Option<Vec<u8>> {
         }
         // can't go any further
         return None;
+    }
+    if short {
+        return Some(Vec::from(target.to_le_bytes()));
     }
     let mut fd = fsw.0.get_fd(target, 0).unwrap();
     fsw.0.read_to_eof(&mut fd)

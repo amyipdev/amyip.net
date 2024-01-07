@@ -69,6 +69,8 @@ enum DirType {
     File = 0,
     Dir = 1,
     Symlink = 2,
+    // this may need to be removed
+    // hardlinks just steal the inum
     Hardlink = 3,
 }
 impl Inode {
@@ -312,6 +314,7 @@ impl FileSystem {
             data: Box::new([0; 4194304]),
         };
         // need to make . dentry for root
+        // TODO: is this block really necessary?
         // real fs init would also make .. TODO
         {
             let i = &mut res.inodes[1];
@@ -319,6 +322,7 @@ impl FileSystem {
             // first_block, end_block already default to 0
             i.total_file_size = 4096;
             i.perms = 0o755 | (0x1 << 12);
+            i.hard_link_count = 1;
         }
         res.inode_use_cache[0] = 0x2;
         res.data_use_table[0] = 0x1;
@@ -401,7 +405,7 @@ impl vfs::VirtualFileSystem for FileSystem {
         // TODO: update vfs to allow fs to set/check uid, gid, perms
         self.inodes[file_inode].uid = 0;
         self.inodes[file_inode].gid = 0;
-        self.inodes[file_inode].hard_link_count = 0;
+        self.inodes[file_inode].hard_link_count = 1;
         // until we get proper date support, we're just gonna set everything here to 0
         // TODO: actually implement these dates
         self.inodes[file_inode].accessed = 0;
@@ -564,6 +568,48 @@ impl vfs::VirtualFileSystem for FileSystem {
             &self.data[sp..sp + (self.inodes[i as usize].total_file_size as usize)],
             i,
         )))
+    }
+    fn file_perms(&self, fd: &Box<dyn vfs::VirtualFileDescriptor>) -> Option<u16> {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return None;
+        }
+        Some(self.inodes[i as usize].perms)
+    }
+    fn file_owner(&self, fd: &Box<dyn vfs::VirtualFileDescriptor>) -> Option<u32> {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return None;
+        }
+        Some(self.inodes[i as usize].uid)
+    }
+    fn file_group(&self, fd: &Box<dyn vfs::VirtualFileDescriptor>) -> Option<u32> {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return None;
+        }
+        Some(self.inodes[i as usize].gid)
+    }
+    fn file_size(&self, fd: &Box<dyn vfs::VirtualFileDescriptor>) -> Option<u64> {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return None;
+        }
+        Some(self.inodes[i as usize].total_file_size)
+    }
+    fn file_modified(&self, fd: &Box<dyn vfs::VirtualFileDescriptor>) -> Option<u64> {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return None;
+        }
+        Some(self.inodes[i as usize].modified)
+    }
+    fn file_hardlinks(&self, fd: &Box<dyn vfs::VirtualFileDescriptor>) -> Option<u16> {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return None;
+        }
+        Some(self.inodes[i as usize].hard_link_count)
     }
 }
 
