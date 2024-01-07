@@ -14,17 +14,27 @@ use crate::vfs;
 use crate::vfs::VirtualFileSystem;
 use std::sync::atomic::Ordering;
 
+// Box<[u8]> is cool, but Vec<u8> ends up being necessary
+// because on fs creation, [u8] is unsized
 pub struct FileSystem {
     sup: Superblock,
-    inode_use_cache: Box<[u8]>,
-    inodes: Box<[Inode]>,
-    data_use_table: Box<[u8]>,
+    inode_use_cache: Vec<u8>,
+    inodes: Vec<Inode>,
+    data_use_table: Vec<u8>,
     // since WASM is in-memory, we can afford to do this
-    data: Box<[u8]>,
+    data: Vec<u8>,
 }
 
 enum FileSystemVersion {
     V1,
+}
+impl FileSystemVersion {
+    pub fn from(inp: u64) -> Option<Self> {
+        match inp {
+            0x1815f05f7470ff65 => Some(Self::V1),
+            _ => None,
+        }
+    }
 }
 
 // superblock structure length is 32
@@ -294,8 +304,8 @@ impl FileSystem {
                 block_count: 1024,
                 version: FileSystemVersion::V1,
             },
-            inode_use_cache: Box::new([0; 32]),
-            inodes: Box::new(
+            inode_use_cache: vec![0; 32],
+            inodes: Vec::from(
                 [Inode {
                     num: 0,
                     first_block: 0,
@@ -310,8 +320,8 @@ impl FileSystem {
                     created: 0,
                 }; 256],
             ),
-            data_use_table: Box::new([0; 128]),
-            data: Box::new([0; 4194304]),
+            data_use_table: vec![0; 128],
+            data: vec![0; 4194304],
         };
         // need to make . dentry for root
         // TODO: is this block really necessary?
@@ -336,6 +346,62 @@ impl FileSystem {
         d.write_back(&mut res);
         res
     }
+    pub fn from_bytes(buf: &[u8]) -> Option<Self> {
+        if buf.len() < 32 {
+            return None;
+        }
+        let mag: u64 = u64::from_le_bytes(buf[..8].try_into().unwrap());
+        let sup: Superblock = Superblock {
+            magic: mag,
+            data_size: u64::from_le_bytes(buf[8..16].try_into().unwrap()),
+            inode_count: u32::from_le_bytes(buf[16..20].try_into().unwrap()),
+            data_block_size: u32::from_le_bytes(buf[20..24].try_into().unwrap()),
+            block_count: u64::from_le_bytes(buf[24..32].try_into().unwrap()),
+            version: FileSystemVersion::from(mag).unwrap(),
+        };
+        if sup.inode_count % 8 != 0 || sup.data_block_size % 256 != 0 {
+            return None;
+        }
+        let start_inode_table: usize = 32;
+        let start_inodes: usize = start_inode_table + (sup.inode_count as usize) >> 3;
+        let start_data_table: usize = start_inodes + (sup.inode_count as usize) << 3;
+        let start_data: usize = start_data_table + (sup.block_count as usize) >> 3;
+        let end_fs: usize = start_data + sup.block_count as usize * sup.data_block_size as usize;
+        if buf.len() != end_fs {
+            return None;
+        }
+        Some(Self {
+            sup: sup,
+            inode_use_cache: buf[start_inode_table..start_inodes].try_into().unwrap(),
+            inodes: {
+                let dat = &buf[start_inodes..start_data_table];
+                let mut res = vec![];
+                for n in 0..dat.len() >> 6 {
+                    let bp = n << 6;
+                    res.push(Inode {
+                        num: u32::from_le_bytes(dat[bp..bp + 4].try_into().unwrap()),
+                        first_block: u64::from_le_bytes(dat[bp + 4..bp + 12].try_into().unwrap()),
+                        end_block: u64::from_le_bytes(dat[bp + 12..bp + 20].try_into().unwrap()),
+                        total_file_size: u64::from_le_bytes(
+                            dat[bp + 20..bp + 28].try_into().unwrap(),
+                        ),
+                        perms: u16::from_le_bytes(dat[bp + 28..bp + 30].try_into().unwrap()),
+                        uid: u32::from_le_bytes(dat[bp + 30..bp + 34].try_into().unwrap()),
+                        gid: u32::from_le_bytes(dat[bp + 34..bp + 38].try_into().unwrap()),
+                        hard_link_count: u16::from_le_bytes(
+                            dat[bp + 38..bp + 40].try_into().unwrap(),
+                        ),
+                        accessed: u64::from_le_bytes(dat[bp + 40..bp + 48].try_into().unwrap()),
+                        modified: u64::from_le_bytes(dat[bp + 48..bp + 56].try_into().unwrap()),
+                        created: u64::from_le_bytes(dat[bp + 56..bp + 64].try_into().unwrap()),
+                    })
+                }
+                res
+            },
+            data_use_table: buf[start_data_table..start_data].try_into().unwrap(),
+            data: buf[start_data..end_fs].try_into().unwrap(),
+        })
+    }
 }
 
 // TODO: much better error handling
@@ -353,7 +419,7 @@ impl vfs::VirtualFileSystem for FileSystem {
     // note: file deletion might need to be in the context of the dentry
     // since you can't delete a file unless you can stat it
     // TODO: check to make sure hardlinks = 1; if not, not safe to delete, just remove from dentry
-    // TODO:   (should decrement hardlinks) 
+    // TODO:   (should decrement hardlinks)
     fn delete_file(&mut self, inode: u32, dir_inode: u32) -> vfs::VfsResult {
         if !self.check_inode(inode) || !self.check_inode(dir_inode) {
             return Err(vfs::VfsErrno::EINVFD);

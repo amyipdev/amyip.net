@@ -1,6 +1,6 @@
 [package]
 name = "amyip-net-shell"
-authors = ["Amy Parker <amy@amyip.net"]
+authors = ["Amy Parker <amy@amyip.net>"]
 homepage = "https://amyip.net"
 repository = "https://github.com/amyipdev/amyip.net"
 license = "AGPL-3.0-or-later"

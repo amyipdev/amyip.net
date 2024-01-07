@@ -188,13 +188,34 @@ fn process_dir(term: &Terminal, dir: &str, opt: &LsOpts) {
             if f.perms >> 12 == 0 {
                 total += f.tfs;
             }
-            longest_uid = std::cmp::max(longest_uid, if f.owner != 0 {(f.owner.ilog10() + 1) as u64} else {0});
-            longest_gid = std::cmp::max(longest_gid, if f.group != 0 {(f.group.ilog10() + 1) as u64} else {0});
+            longest_uid = std::cmp::max(
+                longest_uid,
+                if f.owner != 0 {
+                    (f.owner.ilog10() + 1) as u64
+                } else {
+                    0
+                },
+            );
+            longest_gid = std::cmp::max(
+                longest_gid,
+                if f.group != 0 {
+                    (f.group.ilog10() + 1) as u64
+                } else {
+                    0
+                },
+            );
             longest_size = std::cmp::max(
                 longest_size,
                 calculate_size_chars_necessary(f.tfs, opt.human_readable, opt.si),
             );
-            longest_hlc = std::cmp::max(longest_hlc, if f.hardlinks != 0 {(f.hardlinks.ilog10() + 1) as u64} else {0});
+            longest_hlc = std::cmp::max(
+                longest_hlc,
+                if f.hardlinks != 0 {
+                    (f.hardlinks.ilog10() + 1) as u64
+                } else {
+                    0
+                },
+            );
         }
         term.writeln(&format!("total {}", total));
         for f in files {

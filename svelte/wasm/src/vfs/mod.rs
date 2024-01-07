@@ -1,7 +1,7 @@
 // TODO: project-wide, change to pub(crate) where applicable
+pub mod dummyfs;
 pub mod futils;
 pub mod infs;
-pub mod dummyfs;
 
 //use once_cell::sync::Lazy;
 
@@ -16,7 +16,7 @@ use std::collections::HashMap;
 // TODO: procfs/sysfs/devfs (base: chardevfs)
 
 // TODO: add note to splash saying to run `get-rootfs` to get the rootfs
-// TODO: tool that hooks vfs to generate filesystems outside 
+// TODO: tool that hooks vfs to generate filesystems outside
 
 // in a MultiMount, "." contains the rootfs
 enum VfsTreeNode {
