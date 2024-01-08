@@ -436,7 +436,6 @@ impl FileSystem {
         let start_data: usize = start_data_table + ((sup.block_count as usize) >> 3);
         let end_fs: usize = start_data + sup.block_count as usize * sup.data_block_size as usize;
         if buf.len() != end_fs {
-            eprintln!("found! buf_len={}, end_fs={}", buf.len(), end_fs);
             return None;
         }
         Some(Self {
@@ -494,7 +493,6 @@ impl FileSystem {
         }
         res.extend(self.data_use_table.clone());
         res.extend(self.data.clone());
-        eprintln!("{}, {}, {}, {}", self.inode_use_cache.len(), self.inodes.len(), self.data_use_table.len(), self.data.len());
         res
     }
 }

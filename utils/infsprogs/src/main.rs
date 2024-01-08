@@ -37,8 +37,11 @@ enum Commands {
         dir: OsString,
         #[clap(short)]
         outfile: OsString,
+        #[clap(short, long)]
         inodes: Option<u32>,
+        #[clap(short, long)]
         block_size: Option<u32>,
+        #[clap(short, long)]
         num_blocks: Option<u64>,
     },
     Mkfs {
@@ -163,7 +166,10 @@ fn _recurse_write_dentry(
                 let stor = fs.vfd_as_dentry(&fd).unwrap();
                 _recurse_write_dentry(npath, fs, stor)?;
             }
-            2 => _gen_symlink(npath, ent.filename)?,
+            2 => _gen_symlink(
+                npath,
+                common::bytes_to_string(&fs.read_to_eof(&mut fd).unwrap()),
+            )?,
             _ => exito("unknown file type encountered"),
         }
     }
@@ -203,10 +209,9 @@ fn _recurse_read_localfs(
                         .as_bytes(),
                 )
                 .unwrap();
-            fs.chmod(&fs.get_fd(ino, 0).unwrap(), 0o10777);
+            fs.chmod(&fs.get_fd(ino, 0).unwrap(), 0o20777);
         } else {
-            let ino = fs
-                .create_file(parent_inode, f, &std::fs::read(&p).unwrap());
+            let ino = fs.create_file(parent_inode, f, &std::fs::read(&p).unwrap());
         }
     }
 }
