@@ -23,6 +23,9 @@ impl VirtualFileSystem for FileSystem {
     fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32> {
         None
     }
+    fn create_directory(&mut self, parent_inode: u32, name: String) -> Option<u32> {
+        None
+    }
     fn rewind_zero(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>) -> VfsResult {
         if fd.get_inum() != 1 {
             return Err(VfsErrno::EINVFD);
@@ -113,6 +116,9 @@ impl VirtualFileSystem for FileSystem {
     }
     fn file_hardlinks(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u16> {
         Some(1)
+    }
+    fn chmod(&mut self, fd: &Box<dyn VirtualFileDescriptor>, perms: u16) -> VfsResult {
+        Err(VfsErrno::EINVFD)
     }
 }
 

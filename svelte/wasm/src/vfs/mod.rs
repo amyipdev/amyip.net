@@ -96,10 +96,13 @@ pub type VfsResult = Result<(), VfsErrno>;
 
 pub trait VirtualFileSystem {
     // TODO: consider getting rid of fd number
+    // TODO: do read/seek/rewind functions need to be mut self?
+    // TODO:   they may just need to be mut fd, which is completely fine
     fn get_fd(&self, inode: u32, fd: u32) -> Option<Box<dyn VirtualFileDescriptor>>;
     fn delete_file(&mut self, inode: u32, dir_inode: u32) -> VfsResult;
     // returns the inode of the new file
     fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32>;
+    fn create_directory(&mut self, parent_inode: u32, name: String) -> Option<u32>;
     fn rewind_zero(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>) -> VfsResult;
     fn rewind(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>, count: u64) -> VfsResult;
     fn seek_forward(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>, count: u64) -> VfsResult;
@@ -121,6 +124,7 @@ pub trait VirtualFileSystem {
     fn file_size(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u64>;
     fn file_modified(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u64>;
     fn file_hardlinks(&self, fd: &Box<dyn VirtualFileDescriptor>) -> Option<u16>;
+    fn chmod(&mut self, fd: &Box<dyn VirtualFileDescriptor>, perms: u16) -> VfsResult;
 }
 
 pub trait VirtualFileDescriptor {

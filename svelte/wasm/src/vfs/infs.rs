@@ -10,6 +10,10 @@
 // TODO: actually implement symlinks and hardlinks
 //   - this means lots of dealing with reads/dentry work
 
+// TODO: consider having a local-storage mount option
+// - allows disk to be persistent
+// - less memory hit
+
 use crate::vfs;
 use crate::vfs::VirtualFileSystem;
 use std::sync::atomic::Ordering;
@@ -51,6 +55,69 @@ struct Superblock {
     block_count: u64,
     // determined by magic, do not store!
     version: FileSystemVersion,
+}
+pub fn get_sup(inodes: u32, block_size: u32, num_blocks: u64) -> Superblock {
+    Superblock {
+        magic: 0x1815f05f7470ff65,
+        data_size: (block_size as u64) * num_blocks,
+        inode_count: inodes,
+        data_block_size: block_size,
+        block_count: num_blocks,
+        version: FileSystemVersion::V1,
+    }
+}
+// TODO: deprecate create_test_fs
+// TODO: put into impl FileSystem
+pub fn mknrfs(inodes: u32, block_size: u32, num_blocks: u64) -> FileSystem {
+    let d = (block_size as u64) * num_blocks;
+    let mut r = FileSystem {
+        sup: vfs::infs::get_sup(inodes, block_size, num_blocks),
+        inode_use_cache: vec![0; (inodes as usize) >> 3],
+        inodes: vec![
+            Inode {
+                num: 0,
+                first_block: 0,
+                end_block: 0,
+                total_file_size: 0,
+                perms: 0,
+                uid: 0,
+                gid: 0,
+                hard_link_count: 0,
+                accessed: 0,
+                modified: 0,
+                created: 0,
+            };
+            inodes as usize
+        ],
+        data_use_table: vec![0; (num_blocks >> 3) as usize],
+        data: vec![0; d as usize],
+    };
+    {
+        let i = &mut r.inodes[1];
+        i.num = 1;
+        // first_block, end_block already default to 0
+        i.total_file_size = 4096;
+        i.perms = 0o10755;
+        i.hard_link_count = 1;
+    }
+    r.inode_use_cache[0] = 0x2;
+    r.data_use_table[0] = 0x1;
+    let mut d = Dentry::from_internal(1, &r).unwrap();
+    let mut p1 = [0u8; 252];
+    let mut p2 = [0u8; 252];
+    p1[0] = '.' as u8;
+    p2[0] = '.' as u8;
+    p2[1] = '.' as u8;
+    d.intern.push(DentryEntry {
+        inum: 1,
+        filename_cstr: p1,
+    });
+    d.intern.push(DentryEntry {
+        inum: 1,
+        filename_cstr: p2,
+    });
+    d.write_back(&mut r);
+    r
 }
 
 // inode structure length is 64
@@ -305,6 +372,7 @@ impl FileSystem {
                 version: FileSystemVersion::V1,
             },
             inode_use_cache: vec![0; 32],
+            // TODO: change into vec![] syntax
             inodes: Vec::from(
                 [Inode {
                     num: 0,
@@ -363,11 +431,12 @@ impl FileSystem {
             return None;
         }
         let start_inode_table: usize = 32;
-        let start_inodes: usize = start_inode_table + (sup.inode_count as usize) >> 3;
-        let start_data_table: usize = start_inodes + (sup.inode_count as usize) << 3;
-        let start_data: usize = start_data_table + (sup.block_count as usize) >> 3;
+        let start_inodes: usize = start_inode_table + ((sup.inode_count as usize) >> 3);
+        let start_data_table: usize = start_inodes + ((sup.inode_count as usize) << 6);
+        let start_data: usize = start_data_table + ((sup.block_count as usize) >> 3);
         let end_fs: usize = start_data + sup.block_count as usize * sup.data_block_size as usize;
         if buf.len() != end_fs {
+            eprintln!("found! buf_len={}, end_fs={}", buf.len(), end_fs);
             return None;
         }
         Some(Self {
@@ -401,6 +470,32 @@ impl FileSystem {
             data_use_table: buf[start_data_table..start_data].try_into().unwrap(),
             data: buf[start_data..end_fs].try_into().unwrap(),
         })
+    }
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut res = vec![];
+        res.extend(self.sup.magic.to_le_bytes());
+        res.extend(self.sup.data_size.to_le_bytes());
+        res.extend(self.sup.inode_count.to_le_bytes());
+        res.extend(self.sup.data_block_size.to_le_bytes());
+        res.extend(self.sup.block_count.to_le_bytes());
+        res.extend(self.inode_use_cache.clone());
+        for n in &self.inodes {
+            res.extend(n.num.to_le_bytes());
+            res.extend(n.first_block.to_le_bytes());
+            res.extend(n.end_block.to_le_bytes());
+            res.extend(n.total_file_size.to_le_bytes());
+            res.extend(n.perms.to_le_bytes());
+            res.extend(n.uid.to_le_bytes());
+            res.extend(n.gid.to_le_bytes());
+            res.extend(n.hard_link_count.to_le_bytes());
+            res.extend(n.accessed.to_le_bytes());
+            res.extend(n.modified.to_le_bytes());
+            res.extend(n.created.to_le_bytes());
+        }
+        res.extend(self.data_use_table.clone());
+        res.extend(self.data.clone());
+        eprintln!("{}, {}, {}, {}", self.inode_use_cache.len(), self.inodes.len(), self.data_use_table.len(), self.data.len());
+        res
     }
 }
 
@@ -456,12 +551,12 @@ impl vfs::VirtualFileSystem for FileSystem {
         let file_inode: usize = _file_inode.unwrap() as usize;
         let bc = crate::common::fastceildiv(data.len() as u64, self.sup.data_block_size as u64);
         let _first_block = self.alloc_data(bc);
-        if _first_block.is_none() {
+        if _first_block.is_none() && bc != 0 {
             self.clear_inode(file_inode as u32).unwrap();
             return None;
         }
         // TODO: factor out self.inodes[file_inode]
-        let fb = _first_block.unwrap();
+        let fb = _first_block.unwrap_or(1);
         let sp: usize = (fb * (self.sup.data_block_size as u64)) as usize;
         self.data[sp..sp + data.len()].copy_from_slice(data);
         self.inodes[file_inode].num = file_inode as u32;
@@ -488,6 +583,49 @@ impl vfs::VirtualFileSystem for FileSystem {
         });
         dentry.write_back(self);
         Some(file_inode as u32)
+    }
+    fn create_directory(&mut self, parent_inode: u32, name: String) -> Option<u32> {
+        if !self.check_inode(parent_inode) {
+            return None;
+        }
+        let _nino = self.alloc_inode();
+        if _nino.is_none() {
+            return None;
+        }
+        let nino: usize = _nino.unwrap() as usize;
+        self.inodes[nino].num = nino as u32;
+        let mut pdent = Dentry::from_internal(parent_inode, &self).unwrap();
+        self.inodes[nino].uid = 0;
+        self.inodes[nino].gid = 0;
+        self.inodes[nino].perms = 0o10755 & !crate::sysvars::UMASK.load(Ordering::Relaxed);
+        self.inodes[nino].hard_link_count = 1;
+        self.inodes[nino].accessed = 0;
+        self.inodes[nino].modified = 0;
+        self.inodes[nino].created = 0;
+        let mut qdent = Dentry::from_internal(nino as u32, &self).unwrap();
+        let mut pm1: [u8; 252] = [0; 252];
+        let l0 = std::cmp::min(252, name.len());
+        pm1[..l0].copy_from_slice(&name.as_bytes()[..l0]);
+        pdent.intern.push(DentryEntry {
+            inum: nino as u32,
+            filename_cstr: pm1,
+        });
+        let mut qm1: [u8; 252] = [0; 252];
+        let mut qm2: [u8; 252] = [0; 252];
+        qm1[0] = '.' as u8;
+        qm2[0] = '.' as u8;
+        qm2[1] = '.' as u8;
+        qdent.intern.push(DentryEntry {
+            inum: nino as u32,
+            filename_cstr: qm1,
+        });
+        qdent.intern.push(DentryEntry {
+            inum: parent_inode,
+            filename_cstr: qm2,
+        });
+        pdent.write_back(self);
+        qdent.write_back(self);
+        Some(nino as u32)
     }
     // we don't do anything special with fd's in INFS, so these are simple operations
     // however, other fs'es might cache information about where on disk to look (LBA-optimization)
@@ -679,6 +817,14 @@ impl vfs::VirtualFileSystem for FileSystem {
             return None;
         }
         Some(self.inodes[i as usize].hard_link_count)
+    }
+    fn chmod(&mut self, fd: &Box<dyn vfs::VirtualFileDescriptor>, perms: u16) -> vfs::VfsResult {
+        let i: u32 = fd.get_inum();
+        if !self.check_inode(i) {
+            return Err(vfs::VfsErrno::EINVFD);
+        }
+        self.inodes[i as usize].perms = perms;
+        Ok(())
     }
 }
 
