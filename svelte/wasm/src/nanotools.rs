@@ -6,6 +6,7 @@
 use crate::vfs::VirtualFileSystem;
 use colored::Colorize;
 use once_cell::sync::Lazy;
+use wasm_bindgen::JsCast;
 use xterm_js_rs::Terminal;
 
 pub fn kmsg(term: &Terminal, args: Vec<&str>) -> i32 {
@@ -45,6 +46,38 @@ Source code: {}",
 });
 pub fn iris_info(term: &Terminal, _args: Vec<&str>) -> i32 {
     term.writeln(&INFO_MSG);
+    return 0;
+}
+
+pub fn loadwebroot(term: &Terminal, args: Vec<&str>) -> i32 {
+    if args.len() < 1 {
+        term.writeln("loadwebroot: no URL provided");
+        return 1;
+    }
+    let r = web_sys::XmlHttpRequest::new().unwrap();
+    r.open_with_async("GET", args[0], false);
+    r.override_mime_type("text/plain; charset=x-user-defined");
+    //r.set_response_type(web_sys::XmlHttpRequestResponseType::Arraybuffer);
+    r.send().unwrap();
+    if r.ready_state() == 4 {
+        let resp = r
+            .response()
+            .unwrap()
+            .dyn_into::<js_sys::JsString>()
+            .unwrap();
+        let mut v: Vec<u8> = vec![];
+        for n in resp.iter() {
+            v.push(n.to_le_bytes()[0]);
+        }
+        crate::vfs::mount_root(Box::new(
+            crate::vfs::infs::FileSystem::from_bytes(&v).unwrap_or_else(|| {
+                term.writeln("loadwebroot: something went wrong, failing safe");
+                crate::vfs::infs::mknrfs(128, 4096, 4096)
+            }),
+        ));
+    } else {
+        panic!("ready state is wrong");
+    }
     return 0;
 }
 

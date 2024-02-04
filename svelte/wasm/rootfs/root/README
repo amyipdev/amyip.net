@@ -1,0 +1,11 @@
+Congratulations! You've successfully loaded the rootfs.
+
+The rootfs contains basic files for working with IrisOS-nano,
+some personal information I've decided to provide, and a
+working environment for you to test IrisOS-nano on.
+
+Some of the contents of this rootfs may be wrong or out of date.
+If you see an issue, you can modify svelte/wasm/rootfs on
+GitHub: https://github.com/amyipdev/amyip.net
+
+Thank you for checking out amyip.net!

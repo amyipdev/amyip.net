@@ -247,6 +247,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "nano" => Some(builtins::nano),
         "sanity-checks.infs" => Some(nanotools::test_infs),
         "sanity-checks.readroot" => Some(nanotools::test_read_root),
+        "loadwebroot" => Some(nanotools::loadwebroot),
         _ => None,
     }
 }
