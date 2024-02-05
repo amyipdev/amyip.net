@@ -44,4 +44,20 @@ fn main() {
             std::process::exit(-1);
         }
     }
+    match std::process::Command::new("bash")
+        .arg(relative!("utils/infs-stage/buildstage.sh"))
+        .status()
+    {
+        Ok(c) => {
+            if !c.success() {
+                eprintln!("{}", "amyip.net: failed to build stage".red());
+                std::process::exit(-5);
+            }
+            println!("{}", "amyip.net: stage built".bright_cyan());
+        }
+        Err(e) => {
+            eprintln!("{} {}", "amyip.net: failed to build stage: ".red(), e);
+            std::process::exit(-6);
+        }
+    }
 }
