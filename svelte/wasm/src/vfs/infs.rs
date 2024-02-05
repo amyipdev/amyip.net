@@ -23,7 +23,7 @@ use std::sync::atomic::Ordering;
 pub struct FileSystem {
     sup: Superblock,
     inode_use_cache: Vec<u8>,
-    inodes: Vec<Inode>,
+    pub inodes: Vec<Inode>,
     data_use_table: Vec<u8>,
     // since WASM is in-memory, we can afford to do this
     data: Vec<u8>,
@@ -116,14 +116,14 @@ pub fn mknrfs(inodes: u32, block_size: u32, num_blocks: u64) -> FileSystem {
         inum: 1,
         filename_cstr: p2,
     });
-    d.write_back(&mut r);
+    d.write_back(&mut r, true);
     r
 }
 
 // inode structure length is 64
 // TODO: consider implementing Default
-#[derive(Copy, Clone)]
-struct Inode {
+#[derive(Copy, Clone, Debug)]
+pub struct Inode {
     // 0 = unused
     num: u32,
     first_block: u64,
@@ -225,7 +225,7 @@ impl Dentry {
             inum,
         ))
     }
-    fn write_back(self, fs: &mut FileSystem) {
+    fn write_back(self, fs: &mut FileSystem, first: bool) {
         let mut ba: Vec<u8> = vec![];
         for item in self.intern {
             ba.extend(u32::to_le_bytes(item.inum));
@@ -236,8 +236,23 @@ impl Dentry {
                 fs.sup.data_block_size as usize - (ba.len() % fs.sup.data_block_size as usize),
             ),
         );
-        fs.overwrite(&mut fs.get_fd(self.inum, 0x0).unwrap(), &ba)
-            .unwrap();
+        if !first {
+            fs.overwrite(&mut fs.get_fd(self.inum, 0x0).unwrap(), &ba)
+                .unwrap();
+        } else {
+            // when creating a directory, we don't want to just delete what's at the position
+            // overwrite calls clear_data - but our data blocks probably aren't right
+            // this is a modified version of overwrite without this issue
+            let bc = crate::common::fastceildiv(ba.len() as u64, fs.sup.data_block_size as u64);
+            let _fb = fs.alloc_data(bc);
+            let fb = _fb.unwrap();
+            let sp: usize = (fb * fs.sup.data_block_size as u64) as usize;
+            fs.data[sp..sp + ba.len()].copy_from_slice(&ba);
+            let ino = &mut fs.inodes[self.inum as usize];
+            ino.first_block = fb;
+            ino.end_block = fb + bc - 1;
+            ino.total_file_size = ba.len() as u64;
+        }
     }
 }
 impl vfs::VirtualDentry for Dentry {
@@ -423,7 +438,7 @@ impl FileSystem {
             inum: 1,
             filename_cstr: mv,
         });
-        d.write_back(&mut res);
+        d.write_back(&mut res, true);
         res
     }
     pub fn from_bytes(buf: &[u8]) -> Option<Self> {
@@ -539,7 +554,7 @@ impl vfs::VirtualFileSystem for FileSystem {
                 break;
             }
         }
-        dentry.write_back(self);
+        dentry.write_back(self, false);
         Ok(())
     }
     // todo: explicit typing
@@ -591,7 +606,7 @@ impl vfs::VirtualFileSystem for FileSystem {
             inum: file_inode as u32,
             filename_cstr: mv,
         });
-        dentry.write_back(self);
+        dentry.write_back(self, false);
         Some(file_inode as u32)
     }
     fn create_directory(&mut self, parent_inode: u32, name: String) -> Option<u32> {
@@ -633,8 +648,8 @@ impl vfs::VirtualFileSystem for FileSystem {
             inum: parent_inode,
             filename_cstr: qm2,
         });
-        pdent.write_back(self);
-        qdent.write_back(self);
+        qdent.write_back(self, false);
+        pdent.write_back(self, true);
         Some(nino as u32)
     }
     // we don't do anything special with fd's in INFS, so these are simple operations

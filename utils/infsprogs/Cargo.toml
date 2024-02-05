@@ -1,6 +1,6 @@
 [package]
 name = "infsprogs"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Amy Parker <amy@amyip.net>"]
 homepage = "https://amyip.net"
 repository = "https://github.com/amyipdev/amyip.net"
