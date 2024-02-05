@@ -141,7 +141,7 @@ pub fn cat(term: &Terminal, mut args: Vec<&str>) -> i32 {
     let mut cl = 1;
     let mut pe = true;
     for f in files {
-        let txt = crate::vfs::futils::read_to_end(f.to_string(), false);
+        let txt = crate::vfs::futils::read_to_end(f.to_string());
         if txt.is_none() {
             term.writeln(&format!("cat: {}: No such file or directory", f));
             return -2;

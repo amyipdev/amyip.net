@@ -595,7 +595,7 @@ impl vfs::VirtualFileSystem for FileSystem {
         let mut pdent = Dentry::from_internal(parent_inode, &self).unwrap();
         self.inodes[nino].uid = 0;
         self.inodes[nino].gid = 0;
-        self.inodes[nino].perms = 0o10755 & !crate::sysvars::UMASK.load(Ordering::Relaxed);
+        self.inodes[nino].perms = 0o10777 & !crate::sysvars::UMASK.load(Ordering::Relaxed);
         self.inodes[nino].hard_link_count = 1;
         self.inodes[nino].accessed = 0;
         self.inodes[nino].modified = 0;

@@ -1,6 +1,17 @@
+use crate::vfs::VirtualFileSystem;
+use either::Either;
+
 // assumes fs is mounted
 // TODO: factor out further (read?)
-pub fn read_to_end(mut path: String, short: bool) -> Option<Vec<u8>> {
+pub fn read_to_end(mut path: String) -> Option<Vec<u8>> {
+    let mut r = match find_file(path, false) {
+        Either::Left(v) => v,
+        Either::Right(_) => return None
+    };
+    r.0.read_to_eof(&mut r.1)
+}
+
+pub fn find_file<'a>(mut path: String, short: bool) -> Either<(&'a mut Box<dyn crate::vfs::VirtualFileSystem>, Box<dyn crate::vfs::VirtualFileDescriptor>), Option<Vec<u8>>> {
     // prepare destination string
     if path.ends_with("/") {
         path.push('.');
@@ -42,11 +53,11 @@ pub fn read_to_end(mut path: String, short: bool) -> Option<Vec<u8>> {
             }
         }
         // can't go any further
-        return None;
+        return Either::Right(None);
     }
     if short {
-        return Some(Vec::from(target.to_le_bytes()));
+        return Either::Right(Some(Vec::from(target.to_le_bytes())));
     }
-    let mut fd = fsw.0.get_fd(target, 0).unwrap();
-    fsw.0.read_to_eof(&mut fd)
+    let fd = fsw.0.get_fd(target, 0).unwrap();
+    Either::Left((fsw.0, fd))
 }

@@ -1,0 +1,8 @@
+IrisOS-nano disks are NOT PERSISTENT.
+When you exit, the data will be destroyed.
+
+Support for exporting your rootfs is coming.
+Until then, you can use infsprogs to build an fs,
+and then load it with `loadwebroot`.
+
+https://crates.io/crates/infsprogs
