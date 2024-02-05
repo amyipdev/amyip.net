@@ -251,6 +251,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "loadwebroot" => Some(nanotools::loadwebroot),
         "setup" => Some(nanotools::setup),
         "cd" => Some(unix::cd::cd),
+        "pwd" => Some(unix::pwd::pwd),
         _ => None,
     }
 }
