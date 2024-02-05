@@ -49,6 +49,7 @@ pub fn iris_info(term: &Terminal, _args: Vec<&str>) -> i32 {
     return 0;
 }
 
+/*
 pub fn loadwebroot(term: &Terminal, args: Vec<&str>) -> i32 {
     if args.len() < 1 {
         term.writeln("loadwebroot: no URL provided");
@@ -78,6 +79,26 @@ pub fn loadwebroot(term: &Terminal, args: Vec<&str>) -> i32 {
     } else {
         panic!("ready state is wrong");
     }
+    return 0;
+}*/
+
+pub fn loadwebroot(term: &Terminal, args: Vec<&str>) -> i32 {
+    if args.len() < 1 {
+        term.writeln("loadwebroot: no URL provided");
+        return 1;
+    }
+    crate::vfs::mount_root(Box::new(
+        crate::vfs::infs::FileSystem::from_bytes(&binfetch_wasm::basic_fetch(args[0]).unwrap())
+            .unwrap_or_else(|| {
+                term.writeln("loadwebroot: something went wrong, failing safe");
+                crate::vfs::infs::mknrfs(128, 4096, 1024)
+            }),
+    ));
+    return 0;
+}
+
+pub fn setup(term: &Terminal, args: Vec<&str>) -> i32 {
+    loadwebroot(term, vec!["/build/i.iar"]);
     return 0;
 }
 

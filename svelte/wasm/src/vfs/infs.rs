@@ -416,10 +416,8 @@ impl FileSystem {
     }
     pub fn from_bytes(buf: &[u8]) -> Option<Self> {
         if buf.len() < 32 {
-            crate::log("if");
             return None;
         }
-        crate::log(&buf.len().to_string());
         let mag: u64 = u64::from_le_bytes(buf[..8].try_into().unwrap());
         let sup: Superblock = Superblock {
             magic: mag,
@@ -430,7 +428,6 @@ impl FileSystem {
             version: FileSystemVersion::from(mag).expect(&format!("{:#x}", mag)),
         };
         if sup.inode_count % 8 != 0 || sup.data_block_size % 256 != 0 {
-            crate::log("if");
             return None;
         }
         let start_inode_table: usize = 32;
@@ -439,7 +436,6 @@ impl FileSystem {
         let start_data: usize = start_data_table + ((sup.block_count as usize) >> 3);
         let end_fs: usize = start_data + sup.block_count as usize * sup.data_block_size as usize;
         if buf.len() != end_fs {
-            crate::log("if");
             return None;
         }
         Some(Self {

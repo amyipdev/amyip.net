@@ -83,6 +83,7 @@ pub fn main() -> Result<(), JsValue> {
     kmessage(&term, "dummyfs: mounted initfs at /");
     term.writeln(&format!("Welcome to {}!", "IrisOS-nano".bright_green()));
     term.writeln(&format!("Type {} for a list of commands.", "help".bold()));
+    term.writeln(&format!("Type {} to load the filesystem.", "setup".bold()));
     term.writeln(&format!(
         "Type {} for more information.",
         "iris-info".bold()
@@ -248,6 +249,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "sanity-checks.infs" => Some(nanotools::test_infs),
         "sanity-checks.readroot" => Some(nanotools::test_read_root),
         "loadwebroot" => Some(nanotools::loadwebroot),
+        "setup" => Some(nanotools::setup),
         _ => None,
     }
 }
