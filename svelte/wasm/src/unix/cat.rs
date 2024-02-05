@@ -38,6 +38,7 @@ struct CatOpts {
     version: bool,
 }
 // TODO: is there a better way to dedup with what is in uname so far?
+// TODO: don't read if the file is a directory
 pub fn cat(term: &Terminal, mut args: Vec<&str>) -> i32 {
     if args.len() < 1 {
         term.writeln("cat: stdin mode not supported in cat-irun");

@@ -278,11 +278,17 @@ impl FileSystem {
                 self.data_use_table[n as usize] &= 0x0;
             }
         }
-        for n in sbi..8 {
-            self.data_use_table[sby as usize] &= !(1 << n);
-        }
-        for n in 0..ebi + 1 {
-            self.data_use_table[eby as usize] &= !(1 << n);
+        if sby != eby {
+            for n in sbi..8 {
+                self.data_use_table[sby as usize] &= !(1 << n);
+            }
+            for n in 0..ebi + 1 {
+                self.data_use_table[eby as usize] &= !(1 << n);
+            }
+        } else {
+            for n in sbi..ebi + 1 {
+                self.data_use_table[eby as usize] &= !(1 << n);
+            }
         }
         let s: u64 = self.sup.data_block_size as u64;
         // secure erase the blocks since this is in-memory
@@ -333,11 +339,17 @@ impl FileSystem {
                             self.data_use_table[n as usize] |= 0xff;
                         }
                     }
-                    for n in bit_start..8 {
-                        self.data_use_table[byte_start as usize] |= 1 << n;
-                    }
-                    for n in 0..bit_end + 1 {
-                        self.data_use_table[byte_end as usize] |= 1 << n;
+                    if byte_start != byte_end {
+                        for n in bit_start..8 {
+                            self.data_use_table[byte_start as usize] |= 1 << n;
+                        }
+                        for n in 0..bit_end + 1 {
+                            self.data_use_table[byte_end as usize] |= 1 << n;
+                        }
+                    } else {
+                        for n in bit_start..bit_end+1 {
+                            self.data_use_table[byte_end as usize] |= 1 << n;
+                        }
                     }
                     return Some((byte_start << 3) + bit_start as u64);
                 }

@@ -1,5 +1,0 @@
-{
-  "devDependencies": {
-    "@rollup/plugin-wasm": "^6.2.2"
-  }
-}

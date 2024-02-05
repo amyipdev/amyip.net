@@ -11,6 +11,7 @@ pub fn read_to_end(mut path: String) -> Option<Vec<u8>> {
     r.0.read_to_eof(&mut r.1)
 }
 
+// TODO: follow_links option for cat, others
 pub fn find_file<'a>(mut path: String, short: bool) -> Either<(&'a mut Box<dyn crate::vfs::VirtualFileSystem>, Box<dyn crate::vfs::VirtualFileDescriptor>), Option<Vec<u8>>> {
     // prepare destination string
     if path.ends_with("/") {
