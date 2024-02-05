@@ -127,7 +127,9 @@ fn process_dir(term: &Terminal, dir: &str, opt: &LsOpts) {
     // we still need to get the FS to read, but we can
     // abuse read_to_end's short-circuit operation
     let ino: u32 = u32::from_le_bytes(
-        crate::vfs::futils::find_file(dir.to_string(), true).right().unwrap()
+        crate::vfs::futils::find_file(dir.to_string(), true)
+            .right()
+            .unwrap()
             .unwrap_or(u32::MAX.to_le_bytes().try_into().unwrap())
             .try_into()
             .unwrap(),

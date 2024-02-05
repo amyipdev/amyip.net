@@ -362,7 +362,7 @@ impl FileSystem {
                             self.data_use_table[byte_end as usize] |= 1 << n;
                         }
                     } else {
-                        for n in bit_start..bit_end+1 {
+                        for n in bit_start..bit_end + 1 {
                             self.data_use_table[byte_end as usize] |= 1 << n;
                         }
                     }

@@ -250,6 +250,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "sanity-checks.readroot" => Some(nanotools::test_read_root),
         "loadwebroot" => Some(nanotools::loadwebroot),
         "setup" => Some(nanotools::setup),
+        "cd" => Some(unix::cd::cd),
         _ => None,
     }
 }
