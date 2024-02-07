@@ -252,6 +252,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "setup" => Some(nanotools::setup),
         "cd" => Some(unix::cd::cd),
         "pwd" => Some(unix::pwd::pwd),
+        "mv" => Some(unix::mv::mv),
         _ => None,
     }
 }

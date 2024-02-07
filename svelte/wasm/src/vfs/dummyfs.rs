@@ -26,6 +26,9 @@ impl VirtualFileSystem for FileSystem {
     fn create_directory(&mut self, parent_inode: u32, name: String) -> Option<u32> {
         None
     }
+    fn hardlink(&mut self, parent_inode: u32, deploy_inode: u32, name: String) -> VfsResult {
+        Err(VfsErrno::EINVFD)
+    }
     fn rewind_zero(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>) -> VfsResult {
         if fd.get_inum() != 1 {
             return Err(VfsErrno::EINVFD);

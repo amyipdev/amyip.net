@@ -103,6 +103,7 @@ pub trait VirtualFileSystem {
     // returns the inode of the new file
     fn create_file(&mut self, dir_inode: u32, filename: String, data: &[u8]) -> Option<u32>;
     fn create_directory(&mut self, parent_inode: u32, name: String) -> Option<u32>;
+    fn hardlink(&mut self, parent_inode: u32, deploy_inode: u32, name: String) -> VfsResult;
     fn rewind_zero(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>) -> VfsResult;
     fn rewind(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>, count: u64) -> VfsResult;
     fn seek_forward(&mut self, fd: &mut Box<dyn VirtualFileDescriptor>, count: u64) -> VfsResult;

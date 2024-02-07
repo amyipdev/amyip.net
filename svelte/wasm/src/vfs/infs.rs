@@ -544,9 +544,12 @@ impl vfs::VirtualFileSystem for FileSystem {
         if !self.check_inode(inode) || !self.check_inode(dir_inode) {
             return Err(vfs::VfsErrno::EINVFD);
         }
+        self.inodes[inode as usize].hard_link_count -= 1;
         let ino = &self.inodes[inode as usize];
-        self.clear_data(ino.first_block, ino.end_block).unwrap();
-        self.clear_inode(inode).unwrap();
+        if ino.hard_link_count == 0 {
+            self.clear_data(ino.first_block, ino.end_block).unwrap();
+            self.clear_inode(inode).unwrap();
+        }
         let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
         for n in 0..dentry.intern.len() {
             if dentry.intern[n].inum == inode {
@@ -651,6 +654,27 @@ impl vfs::VirtualFileSystem for FileSystem {
         qdent.write_back(self, false);
         pdent.write_back(self, true);
         Some(nino as u32)
+    }
+    fn hardlink(
+        &mut self,
+        parent_inode: u32,
+        deploy_inode: u32,
+        name: String,
+    ) -> crate::vfs::VfsResult {
+        if !self.check_inode(parent_inode) || !self.check_inode(deploy_inode) {
+            return Err(vfs::VfsErrno::EINVFD);
+        }
+        let mut p = Dentry::from_internal(parent_inode, &self).unwrap();
+        let mut mv: [u8; 252] = [0; 252];
+        let l = std::cmp::min(252, name.len());
+        mv[..l].copy_from_slice(&name.as_bytes()[..l]);
+        p.intern.push(DentryEntry {
+            inum: deploy_inode,
+            filename_cstr: mv,
+        });
+        self.inodes[deploy_inode as usize].hard_link_count += 1;
+        p.write_back(self, false);
+        Ok(())
     }
     // we don't do anything special with fd's in INFS, so these are simple operations
     // however, other fs'es might cache information about where on disk to look (LBA-optimization)
