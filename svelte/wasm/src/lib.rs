@@ -238,6 +238,8 @@ pub fn main() -> Result<(), JsValue> {
 
 type PathFn = fn(&Terminal, Vec<&str>) -> i32;
 fn check_path(exec: &str) -> Option<PathFn> {
+    // VNP = Very Not POSIX
+    // Working with these to make them POSIXy may help
     match exec {
         "uname" => Some(unix::uname::uname),
         "cat" => Some(unix::cat::cat),
@@ -251,9 +253,10 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "loadwebroot" => Some(nanotools::loadwebroot),
         "setup" => Some(nanotools::setup),
         "cd" => Some(unix::cd::cd),
-        "pwd" => Some(unix::pwd::pwd),
-        "mv" => Some(unix::mv::mv),
-        "cp" => Some(unix::cp::cp),
+        "pwd" => Some(unix::pwd::pwd),       // VNP
+        "mv" => Some(unix::mv::mv),          // VNP
+        "cp" => Some(unix::cp::cp),          // VNP
+        "mkdir" => Some(unix::mkdir::mkdir), // VNP
         _ => None,
     }
 }

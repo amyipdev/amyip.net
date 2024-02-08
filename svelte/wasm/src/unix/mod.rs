@@ -1,10 +1,11 @@
 pub mod cat;
 pub mod cd;
+pub mod cp;
 pub mod ls;
+pub mod mkdir;
 pub mod mv;
 pub mod pwd;
 pub mod uname;
-pub mod cp;
 
 // Model for arg parsing:
 // &bool Option<&str> Option<&str>
