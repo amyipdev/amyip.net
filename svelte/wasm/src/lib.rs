@@ -253,6 +253,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "cd" => Some(unix::cd::cd),
         "pwd" => Some(unix::pwd::pwd),
         "mv" => Some(unix::mv::mv),
+        "cp" => Some(unix::cp::cp),
         _ => None,
     }
 }

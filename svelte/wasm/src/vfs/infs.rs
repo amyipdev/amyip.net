@@ -651,8 +651,8 @@ impl vfs::VirtualFileSystem for FileSystem {
             inum: parent_inode,
             filename_cstr: qm2,
         });
-        qdent.write_back(self, false);
-        pdent.write_back(self, true);
+        qdent.write_back(self, true);
+        pdent.write_back(self, false);
         Some(nino as u32)
     }
     fn hardlink(

@@ -122,6 +122,7 @@ struct FileEntry {
     inode: u32,
     hardlinks: u16,
 }
+// TODO: sort directory alphabetically
 fn process_dir(term: &Terminal, dir: &str, opt: &LsOpts) {
     let mut files: Vec<FileEntry> = vec![];
     // we still need to get the FS to read, but we can

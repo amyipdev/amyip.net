@@ -4,6 +4,7 @@ pub mod ls;
 pub mod mv;
 pub mod pwd;
 pub mod uname;
+pub mod cp;
 
 // Model for arg parsing:
 // &bool Option<&str> Option<&str>

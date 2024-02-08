@@ -1,7 +1,13 @@
 use xterm_js_rs::Terminal;
 
 // Not UNIX compliant, no options support
+// TODO: don't allow moves to somewhere that already exists
+
 pub fn mv(term: &Terminal, args: Vec<&str>) -> i32 {
+    if args.len() == 1 && args[0] == "--help" {
+        term.writeln("Usage: mv [src] [dest]");
+        return 0;
+    }
     if args.len() < 2 {
         term.writeln("mv: missing file operand");
         crate::common::minfo(term, "mv");
