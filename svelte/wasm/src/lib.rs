@@ -258,6 +258,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "cp" => Some(unix::cp::cp),          // VNP
         "mkdir" => Some(unix::mkdir::mkdir), // VNP
         "touch" => Some(unix::touch::touch), // VNP
+        "rm" => Some(unix::rm::rm),          // VNP
         _ => None,
     }
 }
