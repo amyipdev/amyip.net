@@ -297,6 +297,9 @@ fn to_datetime(unix_timestamp: u64) -> String {
 }
 // TODO: evaluate move to common
 fn calculate_size_chars_necessary(num: u64, human: bool, si: bool) -> u64 {
+    if num == 0 {
+        return 1;
+    }
     if human && ((!si && num < 1024) || (si && num < 1000)) {
         if !si {
             (num / 1024u64.pow(num.ilog(1024)) as u64).ilog10() as u64 + 1

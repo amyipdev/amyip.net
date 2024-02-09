@@ -5,6 +5,7 @@ pub mod ls;
 pub mod mkdir;
 pub mod mv;
 pub mod pwd;
+pub mod touch;
 pub mod uname;
 
 // Model for arg parsing:
