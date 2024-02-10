@@ -264,6 +264,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "ln" => Some(unix::ln::ln),
         "echo" => Some(unix::echo::echo),    // MNP
         "rmdir" => Some(unix::rmdir::rmdir), // VNP
+        "help" => Some(nanotools::help),
         _ => None,
     }
 }

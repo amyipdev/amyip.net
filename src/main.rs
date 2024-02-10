@@ -15,9 +15,17 @@ fn index() -> rocket::response::content::RawHtml<Option<String>> {
     )
 }
 
+// TODO: HTTPS and HTTP2 support
+// TODO: execlp into a bash script upon receiving GH webhook
 #[launch]
 fn rocket() -> _ {
+    let config = rocket::Config {
+        port: 8000,
+        address: "::".parse::<std::net::IpAddr>().unwrap(),
+        ..rocket::Config::release_default()
+    };
     rocket::build()
+        .configure(config)
         .mount(
             "/",
             routes![

@@ -170,3 +170,22 @@ pub fn test_read_root(term: &Terminal, _args: Vec<&str>) -> i32 {
     }
     return 0;
 }
+
+const HELPMSG: &str = "IrisOS-nano irun, version 0.1 (wasm32)
+These commands are built in to irun. Other programs traverse the PATH.
+Type `NAME --help` to find out more about the command `NAME`.
+
+cat          [OPTS].. <FILE>..  ls     [DIRNAME]
+cd           [DIR]              mkdir  <DIRNAME>
+cp           <SRC> <DEST>       mv     <SRC> <DEST>
+echo         [MSG]              pwd
+exit                            rm     <FILE>
+help                            rmdir  <DIRECTORY>
+iris-info                       setup
+kmsg         [MSG]              touch  <FILENAME>
+ln           <TARGET> <NAME>    uname  [OPTIONS]
+loadwebroot  [URL]";
+pub fn help(term: &Terminal, _args: Vec<&str>) -> i32 {
+    term.writeln(HELPMSG);
+    return 0;
+}
