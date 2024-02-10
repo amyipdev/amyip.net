@@ -8,6 +8,7 @@ pub mod mkdir;
 pub mod mv;
 pub mod pwd;
 pub mod rm;
+pub mod rmdir;
 pub mod touch;
 pub mod uname;
 

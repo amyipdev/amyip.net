@@ -280,7 +280,19 @@ impl DentryEntry {
 impl FileSystem {
     fn clear_inode(&mut self, inode: u32) -> vfs::VfsResult {
         self.inode_use_cache[(inode >> 3) as usize] &= !(1 << (inode % 8));
-        self.inodes[inode as usize].num = 0;
+        self.inodes[inode as usize] = Inode {
+            num: 0,
+            first_block: 0,
+            end_block: 0,
+            total_file_size: 0,
+            perms: 0,
+            uid: 0,
+            gid: 0,
+            hard_link_count: 0,
+            accessed: 0,
+            modified: 0,
+            created: 0,
+        };
         Ok(())
     }
     fn clear_data(&mut self, sb: u64, eb: u64) -> vfs::VfsResult {

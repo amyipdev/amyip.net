@@ -262,7 +262,8 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "touch" => Some(unix::touch::touch), // VNP
         "rm" => Some(unix::rm::rm),          // VNP
         "ln" => Some(unix::ln::ln),
-        "echo" => Some(unix::echo::echo), // MNP
+        "echo" => Some(unix::echo::echo),    // MNP
+        "rmdir" => Some(unix::rmdir::rmdir), // VNP
         _ => None,
     }
 }
