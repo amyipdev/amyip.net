@@ -4,6 +4,7 @@
 // for that matter.
 
 use crate::vfs::VirtualFileSystem;
+use crate::errors::ar;
 use colored::Colorize;
 use once_cell::sync::Lazy;
 use wasm_bindgen::JsCast;
@@ -88,7 +89,7 @@ pub fn loadwebroot(term: &Terminal, args: Vec<&str>) -> i32 {
         return 1;
     }
     crate::vfs::mount_root(Box::new(
-        crate::vfs::infs::FileSystem::from_bytes(&binfetch_wasm::basic_fetch(args[0]).unwrap())
+        crate::vfs::infs::FileSystem::from_bytes(&ar!(binfetch_wasm::basic_fetch(args[0]), ah, -8, term))
             .unwrap_or_else(|| {
                 term.writeln("loadwebroot: something went wrong, failing safe");
                 crate::vfs::infs::mknrfs(128, 4096, 1024)
@@ -188,4 +189,11 @@ loadwebroot  [URL]";
 pub fn help(term: &Terminal, _args: Vec<&str>) -> i32 {
     term.writeln(HELPMSG);
     return 0;
+}
+
+fn ah(term: &Terminal, code: i32) {
+    term.writeln(match code {
+        -8 => "loadwebroot: could not load root: network error occurred",
+        _ => "nanotools: unknown error"
+    });
 }
