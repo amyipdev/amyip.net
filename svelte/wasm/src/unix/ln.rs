@@ -1,3 +1,4 @@
+use crate::errors::ao;
 use xterm_js_rs::Terminal;
 
 const LN_HELP: &str = "Usage: ln [OPTION]... <TARGET> <LINK_NAME>
@@ -122,14 +123,25 @@ pub fn ln(term: &Terminal, args: Vec<&str>) -> i32 {
         pino.0.chmod(&fd, 0x2000 + 0o777);
     } else {
         let tgt = u32::from_le_bytes(
-            crate::vfs::futils::find_file(files[0].to_string(), true)
-                .right()
-                .unwrap()
-                .unwrap()
-                .try_into()
-                .unwrap(),
+            ao!(
+                crate::vfs::futils::find_file(files[0].to_string(), true)
+                    .right()
+                    .unwrap(),
+                ah,
+                -8,
+                term
+            )
+            .try_into()
+            .unwrap(),
         );
         pino.0.hardlink(pino.1.get_inum(), tgt, fx);
     }
     return 0;
+}
+
+fn ah(term: &Terminal, code: i32) {
+    term.writeln(match code {
+        -8 => "ln: failed to create link: No such file or directory",
+        _ => "ln: unknown error",
+    });
 }

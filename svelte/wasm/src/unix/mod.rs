@@ -1,6 +1,7 @@
 pub mod cat;
 pub mod cd;
 pub mod cp;
+pub mod echo;
 pub mod ln;
 pub mod ls;
 pub mod mkdir;
@@ -9,7 +10,6 @@ pub mod pwd;
 pub mod rm;
 pub mod touch;
 pub mod uname;
-pub mod echo;
 
 // Model for arg parsing:
 // &bool Option<&str> Option<&str>
