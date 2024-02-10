@@ -240,6 +240,7 @@ type PathFn = fn(&Terminal, Vec<&str>) -> i32;
 fn check_path(exec: &str) -> Option<PathFn> {
     // VNP = Very Not POSIX
     // Working with these to make them POSIXy may help
+    // MNP = Moderately Not POSIX
     match exec {
         "uname" => Some(unix::uname::uname),
         "cat" => Some(unix::cat::cat),
@@ -260,6 +261,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "touch" => Some(unix::touch::touch), // VNP
         "rm" => Some(unix::rm::rm),          // VNP
         "ln" => Some(unix::ln::ln),
+        "echo" => Some(unix::echo::echo),    // MNP
         _ => None,
     }
 }

@@ -9,6 +9,7 @@ pub mod pwd;
 pub mod rm;
 pub mod touch;
 pub mod uname;
+pub mod echo;
 
 // Model for arg parsing:
 // &bool Option<&str> Option<&str>

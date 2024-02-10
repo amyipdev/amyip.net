@@ -8,4 +8,10 @@ some things I find interesting. In the future,
 you'll also be able to run scripts and even
 programs off this filesystem.
 
+IrisOS-nano is UNIX-like. This means some commands
+may not work as expected, and this is not
+feature-complete. You may also experience
+bugs and crashes; if you do, please report them
+on GitHub!
+
 Have fun! :)
