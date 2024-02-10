@@ -553,7 +553,7 @@ impl vfs::VirtualFileSystem for FileSystem {
     // TODO: check to make sure hardlinks = 1; if not, not safe to delete, just remove from dentry
     // TODO:   (should decrement hardlinks)
     fn delete_file(&mut self, inode: u32, dir_inode: u32) -> vfs::VfsResult {
-        if !self.check_inode(inode) || !self.check_inode(dir_inode) {
+        if !self.check_inode(inode) || !self.check_inode(dir_inode) || inode == dir_inode || inode == 0 {
             return Err(vfs::VfsErrno::EINVFD);
         }
         self.inodes[inode as usize].hard_link_count -= 1;
@@ -565,6 +565,10 @@ impl vfs::VirtualFileSystem for FileSystem {
         let mut dentry = Dentry::from_internal(dir_inode, &self).unwrap();
         for n in 0..dentry.intern.len() {
             if dentry.intern[n].inum == inode {
+                let fx = crate::common::bytes_to_string(&dentry.intern[n].filename_cstr);
+                if fx == "." || fx == ".." {
+                    return Err(vfs::VfsErrno::EINVFD);
+                }
                 dentry.intern.remove(n);
                 break;
             }

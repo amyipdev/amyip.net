@@ -17,10 +17,18 @@ pub fn mkdir(term: &Terminal, args: Vec<&str>) -> i32 {
     if parts.len() == 1 {
         parts.push(".");
     }
+    if crate::vfs::futils::find_file(args[0].to_string(), false).is_left() {
+        term.writeln("mkdir: cannot create dir: File exists");
+        return -2;
+    }
     let pino = crate::vfs::futils::find_file(parts[1].to_string(), false)
         .left()
         .unwrap();
-    pino.0
-        .create_directory(pino.1.get_inum(), parts[0].to_string());
+
+    if pino.0
+        .create_directory(pino.1.get_inum(), parts[0].to_string()).is_none() {
+        term.writeln("mkdir: could not create directory: read-only filesystem");
+        return -3;
+    }
     return 0;
 }

@@ -20,5 +20,27 @@ macro_rules! ao {
     }};
 }
 
+macro_rules! axo {
+    ($from:expr) => {{
+        if let Some(f) = $from {
+            f
+        } else {
+            return Err(());
+        }
+    }};
+}
+
+macro_rules! axr {
+    ($from:expr) => {{
+        if let Ok(f) = $from {
+            f
+        } else {
+            return Err(());
+        }
+    }};
+}
+
 pub(crate) use ao;
 pub(crate) use ar;
+pub(crate) use axo;
+pub(crate) use axr;

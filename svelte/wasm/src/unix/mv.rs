@@ -1,4 +1,5 @@
 use xterm_js_rs::Terminal;
+use crate::errors::ao;
 
 // Not UNIX compliant, no options support
 // TODO: don't allow moves to somewhere that already exists
@@ -18,6 +19,10 @@ pub fn mv(term: &Terminal, args: Vec<&str>) -> i32 {
         crate::common::minfo(term, "mv");
         return -1;
     }
+    if crate::vfs::futils::find_file(args[1].to_string(), false).is_left() {
+        term.writeln("mv: cannot move: File exists");
+        return -3;
+    }
     let pi: u32 = u32::from_le_bytes(
         crate::vfs::futils::find_file(
             args[0].rsplitn(2, '/').nth(1).unwrap_or(".").to_string(),
@@ -30,9 +35,8 @@ pub fn mv(term: &Terminal, args: Vec<&str>) -> i32 {
         .unwrap(),
     );
     // we don't short - we need the resulting FS
-    let df = crate::vfs::futils::find_file(args[0].to_string(), false)
-        .left()
-        .unwrap();
+    let df = ao!(crate::vfs::futils::find_file(args[0].to_string(), false)
+        .left(), ah, -2, term);
     let di = df.1.get_inum();
     // TODO: optimize out this double rsplitn call
     let si: u32 = u32::from_le_bytes(
@@ -52,4 +56,11 @@ pub fn mv(term: &Terminal, args: Vec<&str>) -> i32 {
     df.0.hardlink(si, di, name);
     df.0.delete_file(di, pi);
     return 0;
+}
+
+fn ah(term: &Terminal, code: i32) {
+    term.writeln(match code {
+        -2 => "mv: cannot move: No such file or directory",
+        _ => "mv: unknown error"
+    })
 }
