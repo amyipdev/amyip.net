@@ -3,8 +3,8 @@
 // on full releases of IrisOS, or any non-experimental OS
 // for that matter.
 
-use crate::vfs::VirtualFileSystem;
 use crate::errors::ar;
+use crate::vfs::VirtualFileSystem;
 use colored::Colorize;
 use once_cell::sync::Lazy;
 use wasm_bindgen::JsCast;
@@ -89,11 +89,16 @@ pub fn loadwebroot(term: &Terminal, args: Vec<&str>) -> i32 {
         return 1;
     }
     crate::vfs::mount_root(Box::new(
-        crate::vfs::infs::FileSystem::from_bytes(&ar!(binfetch_wasm::basic_fetch(args[0]), ah, -8, term))
-            .unwrap_or_else(|| {
-                term.writeln("loadwebroot: something went wrong, failing safe");
-                crate::vfs::infs::mknrfs(128, 4096, 1024)
-            }),
+        crate::vfs::infs::FileSystem::from_bytes(&ar!(
+            binfetch_wasm::basic_fetch(args[0]),
+            ah,
+            -8,
+            term
+        ))
+        .unwrap_or_else(|| {
+            term.writeln("loadwebroot: something went wrong, failing safe");
+            crate::vfs::infs::mknrfs(128, 4096, 1024)
+        }),
     ));
     return 0;
 }
@@ -191,9 +196,54 @@ pub fn help(term: &Terminal, _args: Vec<&str>) -> i32 {
     return 0;
 }
 
+pub fn neofetch(term: &Terminal, _args: Vec<&str>) -> i32 {
+    term.writeln(&format!("
+[0;34;40m                                        [35;49;1m   root@amyip.net
+[0;34;40m                                        [37;49m   --------------
+[0;34;40m       [0;1;37;47m                         [0;34;40m        [35;49;1m   OS[37;49m: IrisOS-nano
+[0;34;40m     [0;5;37;47m                              [0;31;40m     [35;49;1m   Kernel[37;49m: {kvsn}
+[0;34;40m  [0;5;33;47m                                    [0;34;40m  [35;49;1m   Uptime[37;49m: {cup}
+[0;34;40m [0;1;30;47m     [0;5;35;40m      [0;1;30;47m                [0;32;40m      [0;1;37;47m     [0;34;40m [35;49;1m   Shell[37;49m: irun 0.1
+[0;5;36;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m                  [0;5;37;40m      [0;1;37;47m    [0;5;33;40m [35;49;1m   CPU[37;49m: wasm32
+[0;1;37;47m    [0;5;35;40m      [0;5;37;47m    [0;5;37;40m           [0;5;35;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m    [35;49;1m   Memory[37;49m: {musage}MiB / 4096MiB
+[0;5;37;47m    [0;32;40m      [0;5;37;47m   [0;5;37;40m     [0;1;30;47m    [0;32;40m     [0;5;37;47m   [0;5;35;40m      [0;1;30;47m    [35;49;1m   Build[37;49m: {gitv}
+[0;5;37;47m    [0;32;40m      [0;5;37;47m   [0;5;37;40m     [0;1;30;47m    [0;32;40m     [0;5;37;47m   [0;5;35;40m      [0;1;30;47m    [35;49;1m   Rust[37;49m: v{rustvsn}
+[0;1;37;47m    [0;5;35;40m      [0;5;37;47m    [0;5;37;40m           [0;5;35;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m    [35;49;1m
+[0;5;36;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m                  [0;5;37;40m      [0;1;37;47m    [0;5;33;40m [35;49;1m   Mastodon[37;49m: \x1b]8;id=mastodonlink;https://blahaj.zone/@amyipdev\x07@amyipdev@blahaj.zone\x1b]8;;\x07
+[0;34;40m [0;1;30;47m     [0;5;35;40m      [0;1;30;47m                [0;32;40m      [0;1;37;47m     [0;34;40m [35;49;1m   Matrix[37;49m: \x1b]8;id=matrixlink;https://matrix.to/#/@amyipdev1:matrix.org\x07@amyipdev1:matrix.org\x1b]8;;\x07
+[0;34;40m  [0;5;33;47m                                    [0;34;40m  [35;49;1m   Instagram[37;49m: \x1b]8;id=instagramlink;https://instagram.com/amyipdev\x07@amyipdev\x1b]8;;\x07
+[0;34;40m     [0;5;37;47m                              [0;31;40m     [35;49;1m   Discord[37;49m: \x1b]8;id=discordsitelink;https://discord.com\x07@amyipdev\x1b]8;;\x07
+[0;34;40m       [0;1;37;47m                         [0;34;40m        [35;49;1m
+[0;34;40m                                        [0m   \x1b[40m    \x1b[41m    \x1b[42m    \x1b[43m    \x1b[44m    \x1b[45m    \x1b[46m    \x1b[47m    \x1b[0m
+[0;34;40m                                        [0m   \x1b[48;5;8m    \x1b[48;5;9m    \x1b[48;5;10m    \x1b[48;5;11m    \x1b[48;5;12m    \x1b[48;5;13m    \x1b[48;5;14m    \x1b[47;15m    \x1b[0m
+", kvsn = env!("CARGO_PKG_VERSION"), cup = timeconv(crate::instant::Instant::now().i()), musage = wasm_bindgen::memory().unchecked_into::<js_sys::WebAssembly::Memory>().grow(0) >> 4, gitv = git_version::git_version!(), rustvsn = env!("RUSTC_VERSION")));
+    return 0;
+}
+
+fn timeconv(mut n: u64) -> String {
+    n /= 60000000;
+    let mins = n % 60;
+    n /= 60;
+    let hrs = n % 60;
+    n /= 60;
+    let days = n / 24;
+    let mut b = String::new();
+    if days != 0 {
+        b.push_str(&days.to_string());
+        b.push_str(" days, ");
+    }
+    if hrs != 0 {
+        b.push_str(&hrs.to_string());
+        b.push_str(" hours, ");
+    }
+    b.push_str(&mins.to_string());
+    b.push_str(" mins");
+    b
+}
+
 fn ah(term: &Terminal, code: i32) {
     term.writeln(match code {
         -8 => "loadwebroot: could not load root: network error occurred",
-        _ => "nanotools: unknown error"
+        _ => "nanotools: unknown error",
     });
 }

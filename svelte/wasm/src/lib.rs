@@ -14,6 +14,7 @@ use colored::Colorize;
 use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 use xterm_js_rs::addons::fit::FitAddon;
+use xterm_js_rs::addons::web_links::WebLinksAddon;
 use xterm_js_rs::keys::BellStyle;
 use xterm_js_rs::{OnKeyEvent, Terminal, TerminalOptions, Theme};
 
@@ -84,6 +85,10 @@ pub fn main() -> Result<(), JsValue> {
     kmessage(&term, "dummyfs: mounted initfs at /");
     term.writeln(&format!("Welcome to {}!", "IrisOS-nano".bright_green()));
     term.writeln(&format!("Type {} for a list of commands.", "help".bold()));
+    term.writeln(&format!(
+        "Type {} for current stats and social links.",
+        "neofetch".bold()
+    ));
     term.writeln(&format!("Type {} to load the filesystem.", "setup".bold()));
     term.writeln(&format!(
         "Type {} for more information.",
@@ -232,6 +237,7 @@ pub fn main() -> Result<(), JsValue> {
     // in fact will only be run once. Safety analysis: PASS
     unsafe {
         st.load_addon(ADDON.clone().dyn_into::<FitAddon>()?.into());
+        st.load_addon(WebLinksAddon::new(None, None, None).into());
     }
     st.focus();
     Ok(())
@@ -265,6 +271,7 @@ fn check_path(exec: &str) -> Option<PathFn> {
         "echo" => Some(unix::echo::echo),    // MNP
         "rmdir" => Some(unix::rmdir::rmdir), // VNP
         "help" => Some(nanotools::help),
+        "neofetch" => Some(nanotools::neofetch),
         _ => None,
     }
 }

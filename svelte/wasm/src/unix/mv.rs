@@ -1,5 +1,5 @@
-use xterm_js_rs::Terminal;
 use crate::errors::ao;
+use xterm_js_rs::Terminal;
 
 // Not UNIX compliant, no options support
 // TODO: don't allow moves to somewhere that already exists
@@ -35,8 +35,12 @@ pub fn mv(term: &Terminal, args: Vec<&str>) -> i32 {
         .unwrap(),
     );
     // we don't short - we need the resulting FS
-    let df = ao!(crate::vfs::futils::find_file(args[0].to_string(), false)
-        .left(), ah, -2, term);
+    let df = ao!(
+        crate::vfs::futils::find_file(args[0].to_string(), false).left(),
+        ah,
+        -2,
+        term
+    );
     let di = df.1.get_inum();
     // TODO: optimize out this double rsplitn call
     let si: u32 = u32::from_le_bytes(
@@ -61,6 +65,6 @@ pub fn mv(term: &Terminal, args: Vec<&str>) -> i32 {
 fn ah(term: &Terminal, code: i32) {
     term.writeln(match code {
         -2 => "mv: cannot move: No such file or directory",
-        _ => "mv: unknown error"
+        _ => "mv: unknown error",
     })
 }

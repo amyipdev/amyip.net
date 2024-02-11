@@ -3,10 +3,12 @@ use rocket::fs::relative;
 
 fn main() {
     println!("cargo:rerun-if-changed=NULL");
+    let rcv = rustc_version::version().unwrap();
     match std::process::Command::new("wasm-pack")
         .arg("build")
         .arg("--target")
         .arg("web")
+        .env("RUSTC_VERSION", format!("{}.{}.{}", rcv.major, rcv.minor, rcv.patch))
         .current_dir(relative!("svelte/wasm"))
         .status()
     {

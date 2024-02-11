@@ -1,5 +1,5 @@
-use xterm_js_rs::Terminal;
 use crate::errors::{ao, axo};
+use xterm_js_rs::Terminal;
 
 // avoid options - just recurse automatically
 pub fn cp(term: &Terminal, args: Vec<&str>) -> i32 {
@@ -17,8 +17,12 @@ pub fn cp(term: &Terminal, args: Vec<&str>) -> i32 {
         crate::common::minfo(term, "cp");
         return -1;
     }
-    let mut src = ao!(crate::vfs::futils::find_file(args[0].to_string(), false)
-        .left(), ah, -2, term);
+    let mut src = ao!(
+        crate::vfs::futils::find_file(args[0].to_string(), false).left(),
+        ah,
+        -2,
+        term
+    );
     // TODO: optimize out this double rsplitn call
     let dds = args[1].rsplitn(2, '/').nth(1).unwrap_or(".").to_string();
     let f = args[1].rsplitn(2, '/').nth(0).unwrap().to_string();
@@ -95,6 +99,6 @@ fn recurse_dir(src: String, dest: String) -> Result<(), ()> {
 fn ah(term: &Terminal, code: i32) {
     term.writeln(match code {
         -2 => "cp: cannot copy: No such file or directory",
-        _ => "cp: unknown error"
+        _ => "cp: unknown error",
     });
 }

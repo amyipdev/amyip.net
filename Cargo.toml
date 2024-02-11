@@ -24,3 +24,4 @@ uname = "0.1.1"
 # this requires care, though - don't want to double-compile
 rocket = { version = "0.5.0", features = ["json"] }
 colored = "2.0.4"
+rustc_version = "0.4.0"

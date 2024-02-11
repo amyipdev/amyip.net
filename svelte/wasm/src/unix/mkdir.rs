@@ -25,8 +25,11 @@ pub fn mkdir(term: &Terminal, args: Vec<&str>) -> i32 {
         .left()
         .unwrap();
 
-    if pino.0
-        .create_directory(pino.1.get_inum(), parts[0].to_string()).is_none() {
+    if pino
+        .0
+        .create_directory(pino.1.get_inum(), parts[0].to_string())
+        .is_none()
+    {
         term.writeln("mkdir: could not create directory: read-only filesystem");
         return -3;
     }

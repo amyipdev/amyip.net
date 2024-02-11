@@ -28,7 +28,11 @@ pub fn touch(term: &Terminal, args: Vec<&str>) -> i32 {
     let ntgt = rsn.next().unwrap().to_string();
     let dir = rsn.next().unwrap_or(".").to_string();
     let pino = crate::vfs::futils::find_file(dir, false).left().unwrap();
-    if pino.0.create_file(pino.1.get_inum(), ntgt, &[0u8; 0]).is_none() {
+    if pino
+        .0
+        .create_file(pino.1.get_inum(), ntgt, &[0u8; 0])
+        .is_none()
+    {
         term.writeln("touch: could not touch file: read-only filesystem");
         return -3;
     }

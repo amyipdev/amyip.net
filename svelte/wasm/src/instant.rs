@@ -26,6 +26,9 @@ impl Instant {
     pub fn elapsed(&self) -> Duration {
         Self::now().duration_since(*self)
     }
+    pub fn i(&self) -> u64 {
+        self.0
+    }
     /*
     pub fn checked_add(&self, duration: Duration) -> Option<Self> {
         match duration.as_micros().try_into() {

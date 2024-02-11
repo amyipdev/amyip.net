@@ -17,6 +17,7 @@
 </script>
 
 <main>
+    <!-- TODO: move this navbar to its own component -->
     <Navbar expand="md">
         <NavbarBrand><span id="navbar-brand">amyip.net</span></NavbarBrand>
         <NavbarToggler on:click={() => (isOpen = !isOpen)} />
