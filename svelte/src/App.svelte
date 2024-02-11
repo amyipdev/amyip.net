@@ -36,6 +36,7 @@
 		</div>
 	{/if}
 </main>
+<div id="anti-termux-safety"></div>
 
 <style>
 	:global(body) {

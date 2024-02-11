@@ -13,8 +13,13 @@
 		isOpen = e.detail.isOpen;
 	}
     import {sw} from './stores';
-    window.onscroll = () => {};
     export let active: string;
+
+    // undo Termux control element
+    const dblc = document.body.lastChild as HTMLElement;
+    if (dblc.id != "anti-termux-safety") {
+        dblc.remove();
+    }
 </script>
 
 <main>
@@ -50,12 +55,12 @@
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "projects"} on:click={() => {}}>
+                    <NavLink active={active == "projects"} disabled on:click={() => {}}>
                         projects
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "contact"} on:click={() => {}}>
+                    <NavLink active={active == "contact"} disabled on:click={() => {}}>
                         contact
                     </NavLink>
                 </NavItem>
