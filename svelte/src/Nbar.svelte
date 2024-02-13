@@ -45,13 +45,13 @@
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "blog"} disabled on:click={() => {}}>
-                        blog
+                    <NavLink active={active == "run"} on:click={() => sw.set(4)}>
+                        run
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "run"} disabled on:click={() => {}}>
-                        run
+                    <NavLink active={active == "blog"} disabled on:click={() => {}}>
+                        blog
                     </NavLink>
                 </NavItem>
                 <NavItem>
