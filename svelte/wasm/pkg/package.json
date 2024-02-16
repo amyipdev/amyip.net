@@ -1,0 +1,22 @@
+{
+  "name": "amyip-net-shell",
+  "collaborators": ["Amy Parker <amy@amyip.net>"],
+  "description": "WASM shell for amyip.net",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amyipdev/amyip.net"
+  },
+  "files": [
+    "amyip_net_shell_bg.wasm",
+    "amyip_net_shell.js",
+    "amyip_net_shell.d.ts"
+  ],
+  "module": "amyip_net_shell.js",
+  "homepage": "https://amyip.net",
+  "types": "amyip_net_shell.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ] 
+}
