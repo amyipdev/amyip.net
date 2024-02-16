@@ -20,6 +20,7 @@
     if (dblc.id != "anti-termux-safety") {
         dblc.remove();
     }
+    window.onscroll = () => {};
 </script>
 
 <main>
@@ -45,13 +46,13 @@
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "run"} on:click={() => sw.set(4)}>
-                        run
+                    <NavLink active={active == "blog"} on:click={() => sw.set(4)}>
+                        blog
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "blog"} disabled on:click={() => {}}>
-                        blog
+                    <NavLink active={active == "run"} on:click={() => sw.set(5)}>
+                        run
                     </NavLink>
                 </NavItem>
                 <NavItem>

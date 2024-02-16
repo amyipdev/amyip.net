@@ -5,11 +5,12 @@
 	import ShellView from "./Shell.svelte";
 	import CvView from "./Cv.svelte";
 	import RunView from "./Run.svelte";
+	import BlogView from "./Blog.svelte";
 	import {fade} from "svelte/transition";
     import {SvelteComponentDev} from "svelte/internal";
 	import {sw} from "./stores";
 
-	const views = [WelcomeView,HomeView,ShellView,CvView,RunView];
+	const views = [WelcomeView,HomeView,ShellView,CvView,BlogView,RunView];
 	let cv: number = 0;
 	let vc: typeof SvelteComponentDev = views[cv];
 

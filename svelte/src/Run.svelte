@@ -34,13 +34,13 @@
 				</Col>
 				<Col>
 					<h3>Internal</h3>
-					<Card color=body-secondary class="mb-3">
+					<Card color=danger-subtle class="mb-3 text-white">
 						<CardHeader><CardTitle>phpMyAdmin</CardTitle></CardHeader>
-						<CardBody><CardText><a href="https://maria.amyip.net">maria.amyip.net</a></CardText></CardBody>
+						<CardBody><CardText><a href="javascript:alert('This endpoint has been temporarily shut down for security reasons.');">maria.amyip.net</a></CardText></CardBody>
 					</Card>
-					<Card color=body-secondary class="mb-3">
+					<Card color=danger-subtle class="mb-3 text-white">
 						<CardHeader><CardTitle>Sappho PVE</CardTitle></CardHeader>
-						<CardBody><CardText><a href="https://sappho.amyip.net">sappho.amyip.net</a></CardText></CardBody>
+						<CardBody><CardText><a href="javascript:alert('This endpoint has been temporarily shut down for security reasons.');">sappho.amyip.net</a></CardText></CardBody>
 					</Card>
 					<Card color=body-secondary class="mb-3">
 						<CardHeader><CardTitle>Collabora</CardTitle></CardHeader>
