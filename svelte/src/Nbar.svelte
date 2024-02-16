@@ -61,7 +61,7 @@
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink active={active == "contact"} disabled on:click={() => {}}>
+                    <NavLink active={active == "contact"} on:click={() => sw.set(7)}>
                         contact
                     </NavLink>
                 </NavItem>
