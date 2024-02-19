@@ -4,8 +4,8 @@ extern crate rocket;
 mod ping;
 mod reload;
 
-use rocket::fs::relative;
 use rocket::data::ToByteUnit;
+use rocket::fs::relative;
 
 #[get("/")]
 fn index() -> rocket::response::content::RawHtml<Option<String>> {

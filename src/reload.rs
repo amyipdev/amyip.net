@@ -1,8 +1,8 @@
 use std::convert::Infallible;
 
+use hmac::Mac;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest};
-use hmac::Mac;
 
 struct Valid(String);
 
