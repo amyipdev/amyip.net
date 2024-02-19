@@ -46,6 +46,10 @@
 						<CardHeader><CardTitle>Collabora</CardTitle></CardHeader>
 						<CardBody><CardText><a href="https://collabora.amyip.net">collabora.amyip.net</a></CardText></CardBody>
 					</Card>
+					<Card color=body-secondary class="mb-3">
+						<CardHeader><CardTitle>Vaultwarden (nogui)</CardTitle></CardHeader>
+						<CardBody><CardText><a href="https://vault.amyip.net">vault.amyip.net</a></CardText></CardBody>
+					</Card>
 				</Col>
 			</Row>
 		</div>
