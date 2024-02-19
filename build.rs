@@ -3,12 +3,18 @@ use rocket::fs::relative;
 
 fn main() {
     println!("cargo:rerun-if-changed=NULL");
+    if std::env::var("GITHUB_WEBHOOK_AUTHENTICATION_AMYIPNET").is_ok() {
+        println!("cargo:rustc-cfg=feature=\"reload_github\"");
+    }
     let rcv = rustc_version::version().unwrap();
     match std::process::Command::new("wasm-pack")
         .arg("build")
         .arg("--target")
         .arg("web")
-        .env("RUSTC_VERSION", format!("{}.{}.{}", rcv.major, rcv.minor, rcv.patch))
+        .env(
+            "RUSTC_VERSION",
+            format!("{}.{}.{}", rcv.major, rcv.minor, rcv.patch),
+        )
         .current_dir(relative!("svelte/wasm"))
         .status()
     {

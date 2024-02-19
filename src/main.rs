@@ -2,8 +2,10 @@
 extern crate rocket;
 
 mod ping;
+mod reload;
 
 use rocket::fs::relative;
+use rocket::data::ToByteUnit;
 
 #[get("/")]
 fn index() -> rocket::response::content::RawHtml<Option<String>> {
@@ -17,11 +19,13 @@ fn index() -> rocket::response::content::RawHtml<Option<String>> {
 
 // TODO: HTTPS and HTTP2 support
 // TODO: execlp into a bash script upon receiving GH webhook
+// TODO: evaluate rocket_contrib StaticFiles over FileServer
 #[launch]
 fn rocket() -> _ {
     let config = rocket::Config {
         port: 8000,
         address: "::".parse::<std::net::IpAddr>().unwrap(),
+        limits: rocket::data::Limits::new().limit("bytes", 32.kibibytes()),
         ..rocket::Config::release_default()
     };
     rocket::build()
@@ -33,7 +37,8 @@ fn rocket() -> _ {
                 ping::ping,
                 ping::ping_txt,
                 ping::ping_uname,
-                ping::ping_json
+                ping::ping_json,
+                reload::reload_github,
             ],
         )
         .mount(
