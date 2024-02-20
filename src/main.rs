@@ -3,6 +3,7 @@ extern crate rocket;
 
 mod ping;
 mod reload;
+mod links;
 
 use rocket::data::ToByteUnit;
 use rocket::fs::relative;
@@ -39,6 +40,7 @@ fn rocket() -> _ {
                 ping::ping_uname,
                 ping::ping_json,
                 reload::reload_github,
+                links::link
             ],
         )
         .mount(
