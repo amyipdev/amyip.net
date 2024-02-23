@@ -55,6 +55,7 @@
 						</p>
 					</Row>
 				</div>
+				<!-- TODO: move into Minor Projects once ACC and pwalarmd are listed here -->
 				<div class="mt-2">
 					<Row>
 						<Col><h3 class="text-start">XAS-CHIP8 <em>(Deprecated)</em></h3></Col>
@@ -76,6 +77,65 @@
 							still exist, but I would not recommend building off of them, as there are several core issues; currently, the project contains
 							a working CHIP-8 assembler, and the beginnings of a 6502 assembler. You can view the code on <a href="https://github.com/amyipdev/xas-chip8-old">GitHub</a>.
 						</p>
+					</Row>
+				</div>
+				<div class="mt-2">
+					<h3>Minor Projects</h3>
+					<Row>
+						<Col><h5 class="text-start">libacc</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/libacc">GitHub</a> <a href="https://crates.io/crates/libacc">Crates.io</a></Col>
+					</Row>
+					<Row>
+						<p><b>libacc</b> is a Rust library for the ACC evasive VPN protocol. It is used in the ACC Project for encrypting/decrypting and obfuscating/deobfuscating packets.
+							The library handles identification of the ACC protocol, management of version-specific BSON documents, dynamic pad-based obfuscation, and encryption/packet authentication
+							using AES256-GCM-SIV.</p>
+					</Row>
+					<Row>
+						<Col><h5 class="text-start">libacmchristmas</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/acmCSUFDev/christmas-client-py">GitHub</a> <a href="https://pypi.org/project/libacmchristmas">PyPI</a></Col>
+					</Row>
+					<Row>
+						<p><b>libacmchristmas</b>/<b>christmas-client-py</b> is a Python library that controls Christmas trees running on <a href="https://github.com/acmCSUFDev/christmasd">christmasd</a>.
+							It is a part of the greater acmCSUF <a href="https://github.com/acmCSUFDev/christmas">christmas</a> project for <a href="https://blink.acmcsuf.com/">Blinking Lights</a> 2023.
+							The library is based around Protocol Buffers and WebSockets for communication with the tree, and provides both raw interfaces to the tree (individually setting each light)
+							and Python-native image handling via Pillow.</p>
+					</Row>
+					<Row>
+						<Col><h5 class="text-start">binfetch-wasm</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/binfetch-wasm">GitHub</a> <a href="https://crates.io/crates/binfetch-wasm">Crates.io</a></Col>
+					</Row>
+					<Row>
+						<p><b>binfetch-wasm</b> is a Rust library that allows for synchronous downloads of binary data in non-WASI WASM environments.
+							It is used here on amyip.net to allow IrisOS-nano (the shell mode) to download filesystems via loadwebroot.
+							The downloads are done by wrapping the browser's XHR interface in synchronous mode and converting the data into a binary-acceptable format,
+							which requires several HTTP header tricks.</p>
+					</Row>
+					<Row>
+						<Col><h5 class="text-start">infsprogs</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/amyip.net/tree/main/utils/infsprogs">GitHub</a> <a href="https://crates.io/crates/infsprogs">Crates.io</a></Col>
+					</Row>
+					<Row>
+						<p><b>infsprogs</b> is a filesystem creation tool for the IrisOS-nano File System (INFS), which is used here on amyip.net.
+							It is the primary way to build new INFS filesystems from existing on-system directory trees, similar to the operation of xorriso.</p>
+					</Row>
+					<Row>
+						<Col><h5 class="text-start">OpenPrompter Software (beta)</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/openprompter-beta">GitHub</a></Col>
+					</Row>
+					<Row>
+						<p><b>OpenPrompter</b> is a beta remote-control DIY teleprompter software system. It was used for the 2022-23 session of Whitney HS Live.
+							It allows for existing hardware (computers/Raspberry Pis, and existing displays) to be turned at very low cost into a teleprompter
+							that also functions as a camera view-back. It does so using PyGame, Flask, and OpenCV2.</p>
+					</Row>
+					<Row>
+						<Col><h5 class="text-start">random-leak</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/random-leak">GitHub</a></Col>
+					</Row>
+					<Row>
+						<p><b>random-leak</b> is a "joke" Linux kernel module that leaks random parts of kernel memory by selecting small amounts of data from pages taken up by random symbols in kallsyms.
+							Retrieving this data is done through a protected, root-access-only entry in /proc.
+							It is theoretically a cross-platform kernel module, as long as the underlying kernel has kprobes enabled.
+							Using procfs, it also allows the user to configure how much kernel memory to leak through a simple write operation.</p>
 					</Row>
 				</div>
 			</div>
