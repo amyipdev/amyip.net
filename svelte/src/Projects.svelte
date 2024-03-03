@@ -82,6 +82,16 @@
 				<div class="mt-2">
 					<h3>Minor Projects</h3>
 					<Row>
+						<Col><h5 class="text-start">RODC</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/rodc">GitHub</a> <a href="https://pypi.org/project/rodc-cli">PyPI</a></h5></Col>
+					</Row>
+					<Row>
+						<p><b>RODC</b>, the Read-Only Data Center, is a tool used here on amyip.net for storing static files that aren't built off of or stored with the repository.
+						It provides a simple command-line interface to remotely upload files; because they are static and generally shouldn't be removed, it doesn't have any modification/removal functionality,
+						with files being manually removable from the RODC instance when yanking is necessary. It is a very simple Flask server and Python script which is available on PyPI
+						and can be self-hosted by anyone, and is licensed under GPLv2.</p>
+					</Row>
+					<Row>
 						<Col><h5 class="text-start">libacc</h5></Col>
 						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/libacc">GitHub</a> <a href="https://crates.io/crates/libacc">Crates.io</a></Col>
 					</Row>
