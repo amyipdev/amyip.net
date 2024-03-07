@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source ~/.bashrc
 cd "$(dirname "$0")"
 git pull
 killall -s KILL rocket-worker-t
