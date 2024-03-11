@@ -129,15 +129,16 @@
 							It is the primary way to build new INFS filesystems from existing on-system directory trees, similar to the operation of xorriso.</p>
 					</Row>
 					<Row>
-						<Col><h5 class="text-start">OpenPrompter Software (beta)</h5></Col>
-						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/openprompter-beta">GitHub</a></Col>
-					</Row>
-					<Row>
 						<Col><h5 class="text-start">Watch306</h5></Col>
 						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/watch306">GitHub</a></Col>
 					</Row>
 					<Row>
 						<p><b>Watch306</b> is a small Discord bot for acmCSUF that pings the administrators of the CS306 server when it goes down so that we can respond rapidly.</p>
+					</Row>
+					<Row>
+						<Col><h5 class="text-start">OpenPrompter Software (beta)</h5></Col>
+						<Col><h5 class="text-end"><a href="https://github.com/amyipdev/openprompter-beta">GitHub</a></Col>
+					</Row>
 					<Row>
 						<p><b>OpenPrompter</b> is a beta remote-control DIY teleprompter software system. It was used for the 2022-23 session of Whitney HS Live.
 							It allows for existing hardware (computers/Raspberry Pis, and existing displays) to be turned at very low cost into a teleprompter
