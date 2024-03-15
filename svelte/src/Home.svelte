@@ -32,7 +32,7 @@
 							<Card class="card-cust-xae">
 								<CardHeader style="background-color: #2f0c7a; color: #faf6f6;"><CardTitle><i class="bi bi-mastodon"></i>&nbsp;&nbsp;Mastodon</CardTitle></CardHeader>
 								<!--<CardBody><CardText>My random thoughts</CardText></CardBody>-->
-								<CardFooter style="background-color: #2f0c7a; color: #faf6f6;"><a href="https://blahaj.zone/@amyipdev" class="mobile-08">@amyipdev@blahaj.zone</a></CardFooter>
+								<CardFooter style="background-color: #2f0c7a; color: #faf6f6;"><a href="https://transfem.social/@amyipdev" class="mobile-08">@amyipdev@transfem.social</a></CardFooter>
 							</Card>
 							<!-- #46cb9f -->
 							<Card class="card-cust-xae">

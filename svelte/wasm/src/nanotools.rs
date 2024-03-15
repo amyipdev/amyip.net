@@ -209,7 +209,7 @@ pub fn neofetch(term: &Terminal, _args: Vec<&str>) -> i32 {
 [0;5;37;47m    [0;32;40m      [0;5;37;47m   [0;5;37;40m     [0;1;30;47m    [0;32;40m     [0;5;37;47m   [0;5;35;40m      [0;1;30;47m    [35;49;1m   Build[37;49m: {gitv}
 [0;5;37;47m    [0;32;40m      [0;5;37;47m   [0;5;37;40m     [0;1;30;47m    [0;32;40m     [0;5;37;47m   [0;5;35;40m      [0;1;30;47m    [35;49;1m   Rust[37;49m: v{rustvsn}
 [0;1;37;47m    [0;5;35;40m      [0;5;37;47m    [0;5;37;40m           [0;5;35;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m    [35;49;1m
-[0;5;36;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m                  [0;5;37;40m      [0;1;37;47m    [0;5;33;40m [35;49;1m   Mastodon[37;49m: \x1b]8;id=mastodonlink;https://blahaj.zone/@amyipdev\x07@amyipdev@blahaj.zone\x1b]8;;\x07
+[0;5;36;40m [0;5;37;47m    [0;1;30;40m      [0;5;37;47m                  [0;5;37;40m      [0;1;37;47m    [0;5;33;40m [35;49;1m   Mastodon[37;49m: \x1b]8;id=mastodonlink;https://transfem.social/@amyipdev\x07@amyipdev@transfem.social\x1b]8;;\x07
 [0;34;40m [0;1;30;47m     [0;5;35;40m      [0;1;30;47m                [0;32;40m      [0;1;37;47m     [0;34;40m [35;49;1m   Matrix[37;49m: \x1b]8;id=matrixlink;https://matrix.to/#/@amyipdev1:matrix.org\x07@amyipdev1:matrix.org\x1b]8;;\x07
 [0;34;40m  [0;5;33;47m                                    [0;34;40m  [35;49;1m   Instagram[37;49m: \x1b]8;id=instagramlink;https://instagram.com/amyipdev\x07@amyipdev\x1b]8;;\x07
 [0;34;40m     [0;5;37;47m                              [0;31;40m     [35;49;1m   Discord[37;49m: \x1b]8;id=discordsitelink;https://discord.com\x07@amyipdev\x1b]8;;\x07
